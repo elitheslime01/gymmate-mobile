@@ -138,11 +138,13 @@ const WalkinBookSession = () => {
             </Flex>
 
             <Flex 
-                justify="space-between"
+                justify="center"
                 mt="auto"
                 pt={4}
                 borderTop="1px solid"
                 borderColor="gray.200"
+                w="100%"
+                gap={4}
             >
                 <Button
                     bgColor="white"
@@ -151,26 +153,23 @@ const WalkinBookSession = () => {
                     borderColor="#FE7654"
                     _hover={{ bg: '#FE7654', color: 'white' }}
                     _active={{ bg: '#cc4a2d' }}
-                    px={6}
-                    py={2}
-                    rounded="md"
+                    w="50%"
                     onClick={handleBkCancel}
                 >
                     Cancel
                 </Button>
                 <Button
-                    bgColor='#FE7654'
-                    color='white'
+                    bgColor="#FE7654"
+                    color="white"
                     _hover={{ bg: '#e65c3b' }}
                     _active={{ bg: '#cc4a2d' }}
-                    px={6}
-                    py={2}
-                    rounded="md"
+                    w="50%"
                     onClick={handleBkProceed}
                 >
                     Proceed
                 </Button>
             </Flex>
+            
         </Box>
     );
 };
