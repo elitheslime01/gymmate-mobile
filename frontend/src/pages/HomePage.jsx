@@ -1,94 +1,125 @@
-import { Box, Flex, Icon, Text } from "@chakra-ui/react";
-import { MdHome, MdCalendarToday, MdNotifications, MdPerson } from "react-icons/md";
+import { Box, Button, Flex, Heading, Icon, SimpleGrid, Stack, Text } from "@chakra-ui/react";
+import { MdCalendarToday, MdAccessTime, MdNotificationsActive } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 
 export default function Home() {
   const navigate = useNavigate();
+  const quickActions = [
+    {
+      id: "book",
+      title: "Book a Session",
+      description: "Reserve your preferred time slot before heading to the gym.",
+      icon: MdCalendarToday,
+      action: () => navigate("/booking"),
+      cta: "Book now",
+    },
+    {
+      id: "attendance",
+      title: "Manage Attendance",
+      description: "Time in or out seamlessly with your acknowledgement receipt.",
+      icon: MdAccessTime,
+      action: () => navigate("/booking"),
+      cta: "Open queue tools",
+    },
+  ];
 
   return (
-    <Flex minH="100vh" direction="column" bg="#f5f6fa">
-      {/* Header */}
-      <Box w="100vw" bg="#0a2342" py={4} boxShadow="sm">
-        <Text color="white" fontWeight="bold" fontSize="xl" textAlign="center">
-          Welcome to GymMate!
-        </Text>
-      </Box>
+    <Flex flex="1" justify="center">
+      <Stack spacing={{ base: 8, md: 12 }} w="full" maxW="container.xl">
+        <Box
+          bgGradient="linear(to-r, #0a2342, #1c4472)"
+          color="white"
+          borderRadius="2xl"
+          boxShadow="xl"
+          p={{ base: 6, md: 10 }}
+        >
+          <Stack spacing={{ base: 4, md: 6 }}>
+            <Heading size="lg">Welcome to GymMate!</Heading>
+            <Text fontSize={{ base: "md", md: "lg" }} maxW="xl">
+              Plan workouts, manage bookings, and stay updated with gym announcements all in one place, whether you&apos;re on mobile or desktop.
+            </Text>
+            <Button
+              size="lg"
+              alignSelf={{ base: "stretch", sm: "flex-start" }}
+              bg="white"
+              color="#0a2342"
+              _hover={{ bg: "rgba(255,255,255,0.9)" }}
+              _active={{ bg: "rgba(255,255,255,0.85)" }}
+              onClick={() => navigate("/booking")}
+            >
+              Schedule a session
+            </Button>
+          </Stack>
+        </Box>
 
-      {/* Main Content */}
-      <Flex flex="1" />
+        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={{ base: 4, md: 6 }}>
+          {quickActions.map((action) => (
+            <Box
+              key={action.id}
+              bg="white"
+              borderRadius="xl"
+              boxShadow="md"
+              p={{ base: 5, md: 6 }}
+              display="flex"
+              flexDirection="column"
+              gap={4}
+            >
+              <Flex align="center" gap={4}>
+                <Box
+                  bg="rgba(10, 35, 66, 0.08)"
+                  color="#0a2342"
+                  borderRadius="lg"
+                  p={3}
+                  display="inline-flex"
+                >
+                  <Icon as={action.icon} boxSize={6} />
+                </Box>
+                <Heading size="md">{action.title}</Heading>
+              </Flex>
+              <Text color="gray.600" flex="1">
+                {action.description}
+              </Text>
+              <Button
+                alignSelf="flex-start"
+                colorScheme="orange"
+                bg="#FE7654"
+                _hover={{ bg: "#e65c3b" }}
+                _active={{ bg: "#cc4a2d" }}
+                onClick={action.action}
+              >
+                {action.cta}
+              </Button>
+            </Box>
+          ))}
+        </SimpleGrid>
 
-      {/* Footer / Bottom Navigation */}
-      <Flex
-        as="nav"
-        w="100vw"
-        bg="white"
-        borderTop="1px solid #e2e8f0"
-        py={2}
-        px={2}
-        justify="space-around"
-        align="center"
-        position="fixed"
-        bottom={0}
-        left={0}
-        zIndex={10}
-      >
-        <Flex
-          direction="column"
-          align="center"
-          flex="1"
-          as="button"
-          bg="transparent"
-          border="none"
-          onClick={() => navigate("/home")}
+        <Box
+          bg="white"
+          borderRadius="xl"
+          boxShadow="md"
+          p={{ base: 5, md: 6 }}
+          display="flex"
+          flexDirection={{ base: "column", md: "row" }}
+          gap={{ base: 4, md: 6 }}
+          alignItems="center"
         >
-          <Icon as={MdHome} boxSize={6} color="#0a2342" />
-          <Text fontSize="xs" color="#0a2342" mt={1}>
-            Home
-          </Text>
-        </Flex>
-        <Flex
-          direction="column"
-          align="center"
-          flex="1"
-          as="button"
-          bg="transparent"
-          border="none"
-          onClick={() => navigate("/booking")}
-        >
-          <Icon as={MdCalendarToday} boxSize={6} color="#0a2342" />
-          <Text fontSize="xs" color="#0a2342" mt={1}>
-            Booking
-          </Text>
-        </Flex>
-        <Flex
-          direction="column"
-          align="center"
-          flex="1"
-          as="button"
-          bg="transparent"
-          border="none"
-          onClick={() => navigate("/notification")}
-        >
-          <Icon as={MdNotifications} boxSize={6} color="#0a2342" />
-          <Text fontSize="xs" color="#0a2342" mt={1}>
-            Notification
-          </Text>
-        </Flex>
-        <Flex
-          direction="column"
-          align="center"
-          flex="1"
-          as="button"
-          bg="transparent"
-          border="none"
-          onClick={() => navigate("/account")}
-        >
-          <Icon as={MdPerson} boxSize={6} color="#0a2342" />
-          <Text fontSize="xs" color="#0a2342" mt={1}>
-            Account
-          </Text>
-        </Flex>
-      </Flex>
+          <Box
+            bg="rgba(254, 118, 84, 0.15)"
+            color="#FE7654"
+            borderRadius="full"
+            p={3}
+            display="inline-flex"
+          >
+            <Icon as={MdNotificationsActive} boxSize={7} />
+          </Box>
+          <Stack spacing={2} flex="1">
+            <Heading size="md">Stay in the loop</Heading>
+            <Text color="gray.600">
+              Enable notifications to get real-time updates on queue changes, new slots, and gym announcements. Seamless on phones, tablets, and desktops.
+            </Text>
+          </Stack>
+        </Box>
+      </Stack>
     </Flex>
   );
 }

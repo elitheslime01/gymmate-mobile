@@ -1,5 +1,38 @@
 import { create } from 'zustand';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
+
+const parseBookingDateTime = (booking) => {
+    if (!booking?._date) {
+        return null;
+    }
+
+    const date = new Date(booking._date);
+    if (Number.isNaN(date.getTime())) {
+        return null;
+    }
+
+    const timeString = booking?._timeSlot?.startTime;
+    if (!timeString) {
+        return date;
+    }
+
+    const match = timeString.match(/(\d+):(\d+) (AM|PM)/i);
+    if (!match) {
+        return date;
+    }
+
+    let hour = parseInt(match[1], 10);
+    const minute = parseInt(match[2], 10) || 0;
+    const meridiem = match[3].toUpperCase();
+
+    if (meridiem === "PM" && hour !== 12) hour += 12;
+    if (meridiem === "AM" && hour === 12) hour = 0;
+
+    date.setHours(hour, minute, 0, 0);
+    return date;
+};
+
 const useWalkinStore = create((set, get) => ({
     navigationStack: ['options'],
     currentView: 'options',
@@ -24,6 +57,10 @@ const useWalkinStore = create((set, get) => ({
     showPassword: { password: false, confirmPassword: false },
     currentBooking: null,
     upcomingBookings: [],
+    pastBookings: [],
+    queueSessions: [],
+    arImage: null,
+    uploadedARImage: null,
 
     setCurrentDate: (date) => set({ currentDate: date }),
     setSelectedDay: (day) => set({ selectedDay: day }),
@@ -50,6 +87,27 @@ const useWalkinStore = create((set, get) => ({
         set({ arImage });
     },
 
+    resetBookingInputs: (options = {}) => {
+        const { resetBooked = true } = options;
+        set((state) => ({
+            selectedTimeSlot: null,
+            selectedTime: null,
+            selectedDay: null,
+            formattedDate: "",
+            scheduleData: null,
+            scheduleId: null,
+            arCode: "",
+            arImage: null,
+            uploadedARImage: null,
+            currentView: 'options',
+            showBooking: false,
+            showARInput: false,
+            showReview: false,
+            showLogOptions: true,
+            isBooked: resetBooked ? false : state.isBooked,
+        }));
+    },
+
     resetState: () => set({
         currentBooking: null,
         showTimeInOut: false,
@@ -59,54 +117,137 @@ const useWalkinStore = create((set, get) => ({
 
     fetchUpcomingBookings: async (studentId) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/bookings/get?studentId=${studentId}`);
+            const response = await fetch(`${API_BASE_URL}/api/bookings/get?studentId=${studentId}`);
             const data = await response.json();
     
             if (data && Array.isArray(data)) {
                 const now = new Date();
-                const currentHour = now.getHours();
-                const currentMinutes = now.getMinutes();
-    
-                const upcoming = data
-                    .filter(booking => {
-                        const bookingDate = new Date(booking._date);
-                        const hasStudent = booking.students.some(s => s._studentId._id === studentId);
-                        const isNotCurrent = booking._id !== get().currentBooking?._id;
-    
-                        // Parse booking time
-                        const [hours, minutes] = booking._timeSlot.startTime.match(/(\d+):(\d+) (AM|PM)/).slice(1);
-                        let bookingHour = parseInt(hours);
-                        const bookingMinutes = parseInt(minutes);
-                        const isPM = booking._timeSlot.startTime.includes('PM');
-    
-                        // Convert to 24-hour format
-                        if (isPM && bookingHour !== 12) bookingHour += 12;
-                        else if (!isPM && bookingHour === 12) bookingHour = 0;
-    
-                        // Compare dates and times
-                        if (bookingDate.toDateString() === now.toDateString()) {
-                            // For same day, check if time slot is in the future
-                            return hasStudent && isNotCurrent && 
-                                   (bookingHour > currentHour || 
-                                   (bookingHour === currentHour && bookingMinutes > currentMinutes));
+                const future = [];
+                const past = [];
+
+                const getTimeValue = (booking) => {
+                    const parsed = parseBookingDateTime(booking);
+                    return parsed ? parsed.getTime() : 0;
+                };
+
+                data.forEach((booking) => {
+                    const studentEntry = booking?.students?.find((s) => s?._studentId?._id === studentId);
+                    if (!studentEntry) {
+                        return;
+                    }
+
+                    const status = (studentEntry._bookingStatus || "").toLowerCase();
+                    const bookingDateTime = parseBookingDateTime(booking);
+                    const isCompleted = Boolean(studentEntry._timedOut) || status.includes("completed") || status.includes("attended") || status.includes("not attended") || status.includes("cancelled");
+
+                    if (!bookingDateTime) {
+                        if (isCompleted) {
+                            past.push(booking);
                         } else {
-                            // For different days, check if date is in the future
-                            return hasStudent && isNotCurrent && bookingDate > now;
+                            future.push(booking);
                         }
-                    })
-                    .sort((a, b) => new Date(a._date) - new Date(b._date));
-    
-                set({ upcomingBookings: upcoming });
+                        return;
+                    }
+
+                    if (bookingDateTime >= now && !isCompleted) {
+                        future.push(booking);
+                    } else {
+                        past.push(booking);
+                    }
+                });
+
+                future.sort((a, b) => getTimeValue(a) - getTimeValue(b));
+                past.sort((a, b) => getTimeValue(b) - getTimeValue(a));
+
+                set({ upcomingBookings: future, pastBookings: past });
             }
         } catch (error) {
             console.error("Error fetching upcoming bookings:", error);
-            set({ upcomingBookings: [] });
+            set({ upcomingBookings: [], pastBookings: [] });
+        }
+    },
+
+    fetchQueueSessions: async (studentId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/queues/get`);
+            const data = await response.json();
+
+            if (!Array.isArray(data)) {
+                set({ queueSessions: [] });
+                return;
+            }
+
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+
+            const sessions = data.flatMap((queueDoc) => {
+                if (!queueDoc?._date || !Array.isArray(queueDoc?.students)) {
+                    return [];
+                }
+
+                return queueDoc.students
+                    .filter((studentEntry) => {
+                        const studentIdValue = typeof studentEntry?._studentId === "object"
+                            ? studentEntry?._studentId?._id
+                            : studentEntry?._studentId;
+                        return studentIdValue === studentId;
+                    })
+                    .map((studentEntry) => {
+                        const studentObject = typeof studentEntry._studentId === "object"
+                            ? studentEntry._studentId
+                            : { _id: studentEntry._studentId };
+
+                        const arObject = typeof studentEntry._arID === "object"
+                            ? studentEntry._arID
+                            : studentEntry._arID
+                                ? { _id: studentEntry._arID }
+                                : null;
+
+                        return {
+                            _id: `queue-${queueDoc._id}-${studentObject?._id}`,
+                            _queueId: queueDoc._id,
+                            _source: "queue",
+                            _date: queueDoc._date,
+                            _timeSlot: queueDoc._timeSlot,
+                            students: [
+                                {
+                                    ...studentEntry,
+                                    _studentId: studentObject,
+                                    _arID: arObject,
+                                    _bookingStatus: studentEntry._queueStatus || "In Queue",
+                                },
+                            ],
+                            _queuedAt: studentEntry._queuedAt,
+                            _queueStatus: studentEntry._queueStatus,
+                        };
+                    })
+                    .filter((session) => {
+                        const sessionDateTime = parseBookingDateTime(session);
+                        if (!sessionDateTime) {
+                            return true;
+                        }
+                        return sessionDateTime.getTime() >= now.getTime();
+                    });
+            });
+
+            sessions.sort((a, b) => {
+                const aDate = parseBookingDateTime(a);
+                const bDate = parseBookingDateTime(b);
+                const aTime = aDate ? aDate.getTime() : Number.POSITIVE_INFINITY;
+                const bTime = bDate ? bDate.getTime() : Number.POSITIVE_INFINITY;
+                return aTime - bTime;
+            });
+
+            set({ queueSessions: sessions });
+        } catch (error) {
+            console.error("Error fetching queue sessions:", error);
+            set({ queueSessions: [] });
         }
     },
 
     fetchCurrentBooking: async (studentId) => {
       try {
-        const response = await fetch(`http://localhost:5000/api/bookings/current/${studentId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/bookings/current/${studentId}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -135,7 +276,7 @@ const useWalkinStore = create((set, get) => ({
         }
         
         const formattedDate = parsedDate.toISOString().split('T')[0]; // Format date as YYYY-MM-DD
-        const response = await fetch(`http://localhost:5000/api/schedules/${formattedDate}`); 
+    const response = await fetch(`${API_BASE_URL}/api/schedules/${formattedDate}`); 
         const data = await response.json();
     
         if (response.ok) {
@@ -152,7 +293,7 @@ const useWalkinStore = create((set, get) => ({
     },
     addARCode: async (arCode, studentID) => {
         try {
-            const response = await fetch('http://localhost:5000/api/ARCodes/uploadAR', {
+            const response = await fetch(`${API_BASE_URL}/api/ARCodes/uploadAR`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -178,7 +319,7 @@ const useWalkinStore = create((set, get) => ({
     checkARCode: async (arCode) => {
         console.log("Sending AR Code for validation:", arCode); 
         try {
-            const response = await fetch('http://localhost:5000/api/ARCodes/checkAR', {
+            const response = await fetch(`${API_BASE_URL}/api/ARCodes/checkAR`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -217,7 +358,7 @@ const useWalkinStore = create((set, get) => ({
             }
     
             // Continue with existing queue addition logic
-            const response = await fetch('http://localhost:5000/api/queues/add', {
+            const response = await fetch(`${API_BASE_URL}/api/queues/add`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -249,36 +390,48 @@ const useWalkinStore = create((set, get) => ({
         }
     },
 
-    uploadARImage: async (arImage, studentId) => {
-        try {
-            if (!arImage || typeof arImage !== 'object' || !arImage.size) {
-                console.error('Error: arImage is not a file object');
-                return;
-              }
-            
-          const formData = new FormData();
-          formData.append('_arImage', arImage);
-          formData.append('_studentId', studentId);
-    
-          const response = await fetch('http://localhost:5000/api/arImage/upload', {
-            method: 'POST',
-            body: formData,
-          });
-    
-          if (response.ok) {
-            const data = await response.json();
-            set({ arImage: data });
-          } else {
-            console.error('Error uploading AR image:', response.statusText);
-          }
-        } catch (error) {
-          console.error('Error uploading AR image:', error.message);
-        }
-      },
+        uploadARImage: async (arImage, studentId) => {
+                try {
+                        if (!arImage || typeof arImage !== 'object' || !arImage.size) {
+                                const message = 'AR image file is missing or invalid.';
+                                console.error(message);
+                                return { success: false, message };
+                        }
+
+                        if (!studentId) {
+                                const message = 'Student ID is required to upload AR image.';
+                                console.error(message);
+                                return { success: false, message };
+                        }
+
+                        const formData = new FormData();
+                        formData.append('_arImage', arImage);
+                        formData.append('_studentId', studentId);
+
+                        const response = await fetch(`${API_BASE_URL}/api/arImage/upload`, {
+                                method: 'POST',
+                                body: formData,
+                        });
+
+                        const data = await response.json().catch(() => null);
+
+                        if (response.ok) {
+                                set({ uploadedARImage: data });
+                                return { success: true, data };
+                        }
+
+                        const message = data?.message || response.statusText || 'Failed to upload AR image.';
+                        console.error('Error uploading AR image:', message);
+                        return { success: false, message };
+                } catch (error) {
+                        console.error('Error uploading AR image:', error);
+                        return { success: false, message: error.message };
+                }
+        },
     
       getARImage: async (studentID) => {
         try {
-          const response = await fetch(`http://localhost:5000/api/arImage/${studentID}`);
+          const response = await fetch(`${API_BASE_URL}/api/arImage/${studentID}`);
     
           if (response.ok) {
             const data = await response.json();
@@ -368,7 +521,7 @@ const useWalkinStore = create((set, get) => ({
             const encodedEndTime = encodeURIComponent(timeSlot.endTime);
                 
             const response = await fetch(
-                `http://localhost:5000/api/bookings/check-existing?` +
+                `${API_BASE_URL}/api/bookings/check-existing?` +
                 `studentId=${studentId}&` +
                 `date=${formattedDate}&` +
                 `startTime=${encodedStartTime}&` +
@@ -399,9 +552,9 @@ const useWalkinStore = create((set, get) => ({
         }
     },
 
-    checkMissedBookings: async () => {
+    checkMissedBookings: async (studentId) => {
         try {
-            const response = await fetch('http://localhost:5000/api/bookings/check-missed', {
+            const response = await fetch(`${API_BASE_URL}/api/bookings/check-missed`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -409,11 +562,9 @@ const useWalkinStore = create((set, get) => ({
             });
 
             if (response.ok) {
-                const state = get();
-                const userId = state.user?._id;
-                if (userId) {
-                    await state.fetchCurrentBooking(userId);
-                    await state.fetchUpcomingBookings(userId);
+                if (studentId) {
+                    await get().fetchCurrentBooking(studentId);
+                    await get().fetchUpcomingBookings(studentId);
                 }
                 return true;
             }
@@ -427,7 +578,7 @@ const useWalkinStore = create((set, get) => ({
     // Update existing timeIn function
     timeIn: async (bookingId, studentId) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/bookings/${bookingId}/timeIn`, {
+            const response = await fetch(`${API_BASE_URL}/api/bookings/${bookingId}/timeIn`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -452,7 +603,7 @@ const useWalkinStore = create((set, get) => ({
     // Update existing timeOut function
     timeOut: async (bookingId, studentId) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/bookings/${bookingId}/timeOut`, {
+            const response = await fetch(`${API_BASE_URL}/api/bookings/${bookingId}/timeOut`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

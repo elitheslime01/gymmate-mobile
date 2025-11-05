@@ -1,9 +1,36 @@
 import { create } from 'zustand';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001"; // Falls back to local backend
+
+const getStoredUser = () => {
+    if (typeof window === "undefined") {
+        return { user: null, isLoggedIn: false };
+    }
+
+    try {
+        const storedUser = localStorage.getItem('userData');
+        if (!storedUser) {
+            return { user: null, isLoggedIn: false };
+        }
+
+        const parsedUser = JSON.parse(storedUser);
+        return {
+            user: parsedUser,
+            isLoggedIn: Boolean(parsedUser?._id),
+        };
+    } catch (error) {
+        console.error('Failed to parse stored user data:', error);
+        localStorage.removeItem('userData');
+        return { user: null, isLoggedIn: false };
+    }
+};
+
+const { user: initialUser, isLoggedIn: initialIsLoggedIn } = getStoredUser();
+
 export  const useStudentStore = create((set, get) => ({
     students: [],
-    user: null,
-    isLoggedIn: false,
+    user: initialUser,
+    isLoggedIn: initialIsLoggedIn,
     isLoading: false,
     error: null,
 
@@ -18,7 +45,7 @@ export  const useStudentStore = create((set, get) => ({
         console.log("Attempting to create a new student:", studentData); 
         set({ isLoading: true, error: null }); 
         try {
-            const response = await fetch('http://localhost:5000/api/students', {
+            const response = await fetch(`${API_BASE_URL}/api/students`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -56,7 +83,7 @@ export  const useStudentStore = create((set, get) => ({
     
         set({ isLoading: true, error: null });
         try {
-            const response = await fetch('http://localhost:5000/api/students/login', {
+            const response = await fetch(`${API_BASE_URL}/api/students/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
@@ -88,7 +115,7 @@ export  const useStudentStore = create((set, get) => ({
         }
     
         try {
-            const response = await fetch('http://localhost:5000/api/students/logout', {
+            const response = await fetch(`${API_BASE_URL}/api/students/logout`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: user._id }),

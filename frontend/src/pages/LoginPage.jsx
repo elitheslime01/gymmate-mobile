@@ -1,4 +1,4 @@
-import { Box, Button, Flex, Input, InputGroup, InputLeftElement, InputRightElement, Text, VStack, Image, Spinner, useToast } from "@chakra-ui/react";
+import { Box, Button, Flex, Heading, Image, Input, InputGroup, InputLeftElement, InputRightElement, Spinner, Stack, Text, useToast } from "@chakra-ui/react";
 import { MdEmail } from "react-icons/md";
 import { RiLockPasswordFill } from "react-icons/ri";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
@@ -42,98 +42,126 @@ export default function LoginPage() {
   };
 
   return (
-    <Flex minH="100vh" bg="#f5f6fa" direction="column" align="center" justify="flex-start">
-      {/* Header */}
-      <Box w="100vw" bg="#0a2342" py={4} mb={6} boxShadow="sm">
-        <Text color="white" fontWeight="bold" fontSize="xl" textAlign="center">
-          Login
-        </Text>
-      </Box>
-
-      {/* Main Content */}
-      <Flex flex="1" w="100%" align="center" justify="center">
-        <VStack spacing={8} w="90%" maxW="350px" mx="auto" mt={2}>
-          {/* Logo */}
-          <Image
-            src="/gymmate_logo.png"
-            alt="GymMate Logo"
-            width="400px"
-            height="110px"
-            objectFit="fill"
-            mb={2}
-          />
-
-          {/* Email Input */}
-          <Box w="100%">
-            <Text fontWeight="semibold" color="#071434" mb={1}>Email</Text>
-            <InputGroup>
-              <InputLeftElement pointerEvents="none" color="gray.400">
-                <MdEmail />
-              </InputLeftElement>
-              <Input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                bg="white"
-                color="#071434"
-                mb={4}
-                _placeholder={{ color: "gray.400" }}
-              />
-            </InputGroup>
-          </Box>
-
-          {/* Password Input */}
-          <Box w="100%">
-            <Text fontWeight="semibold" color="#071434" mb={1}>Password</Text>
-            <InputGroup>
-              <InputLeftElement pointerEvents="none" color="gray.400">
-                <RiLockPasswordFill />
-              </InputLeftElement>
-              <Input
-                type={showPassword ? "text" : "password"}
-                placeholder="Enter your password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                bg="white"
-                color="#071434"
-                _placeholder={{ color: "gray.400" }}
-              />
-              <InputRightElement>
-                <Box as="button" onClick={() => setShowPassword(v => !v)} color="gray.400">
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
-                </Box>
-              </InputRightElement>
-            </InputGroup>
-            <Text fontSize="xs" color="#071434" mt={1} mb={2} textAlign="left" cursor="pointer">
-              Forgot Password?
+    <Flex flex="1" align="center" justify="center">
+      <Box
+        w="full"
+        maxW={{ base: "sm", md: "md" }}
+        bg="white"
+        borderRadius="2xl"
+        boxShadow="xl"
+        p={{ base: 6, md: 8 }}
+      >
+        <Stack spacing={{ base: 6, md: 8 }}>
+          <Stack spacing={3} align="center" textAlign="center">
+            <Image
+              src="/gymmate_logo.png"
+              alt="GymMate Logo"
+              maxW={{ base: "180px", md: "220px" }}
+              objectFit="contain"
+            />
+            <Heading size="lg" color="#071434">
+              Welcome back
+            </Heading>
+            <Text fontSize="sm" color="gray.500">
+              Log in to manage your sessions from any device.
             </Text>
-          </Box>
+          </Stack>
 
-          {/* Login Button */}
-          <Button
-            w="100%"
-            h="45px"
-            bg="#FE7654"
-            color="white"
-            fontWeight="bold"
-            fontSize="md"
-            borderRadius="8px"
-            boxShadow="md"
-            _hover={{ bg: "#e65c3b" }}
-            _active={{ bg: "#cc4a2d" }}
-            onClick={handleLogin}
-            isDisabled={isLoading}
-          >
-            {isLoading ? <Spinner size="sm" color="white" /> : "Log In"}
-          </Button>
+          <Stack spacing={5}>
+            <Box>
+              <Text fontWeight="semibold" color="#071434" mb={2}>
+                Email
+              </Text>
+              <InputGroup>
+                <InputLeftElement pointerEvents="none" color="gray.400">
+                  <MdEmail />
+                </InputLeftElement>
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  bg="white"
+                  color="#071434"
+                  _placeholder={{ color: "gray.400" }}
+                />
+              </InputGroup>
+            </Box>
 
-          {/* Register Link */}
-          <Text fontSize="sm" color="#071434" textAlign="center" cursor="pointer" mt={-2}>
-            Register an account
-          </Text>
-        </VStack>
-      </Flex>
+            <Box>
+              <Text fontWeight="semibold" color="#071434" mb={2}>
+                Password
+              </Text>
+              <InputGroup>
+                <InputLeftElement pointerEvents="none" color="gray.400">
+                  <RiLockPasswordFill />
+                </InputLeftElement>
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  bg="white"
+                  color="#071434"
+                  _placeholder={{ color: "gray.400" }}
+                />
+                <InputRightElement>
+                  <Box as="button" onClick={() => setShowPassword((v) => !v)} color="gray.400">
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  </Box>
+                </InputRightElement>
+              </InputGroup>
+              <Button
+                variant="link"
+                colorScheme="blue"
+                fontSize="sm"
+                mt={2}
+                alignSelf="flex-start"
+              >
+                Forgot password?
+              </Button>
+            </Box>
+          </Stack>
+
+          <Stack spacing={4}>
+            <Button
+              w="full"
+              h="48px"
+              bg="#FE7654"
+              color="white"
+              fontWeight="bold"
+              fontSize="md"
+              borderRadius="lg"
+              boxShadow="md"
+              _hover={{ bg: "#e65c3b" }}
+              _active={{ bg: "#cc4a2d" }}
+              onClick={handleLogin}
+              isDisabled={isLoading}
+            >
+              {isLoading ? <Spinner size="sm" color="white" /> : "Log In"}
+            </Button>
+            <Text fontSize="sm" color="gray.600" textAlign="center">
+              Don&apos;t have an account yet?{" "}
+              <Button variant="link" color="#FE7654" fontWeight="bold" px={1}>
+                Register now
+              </Button>
+            </Text>
+          </Stack>
+
+          {loginError && (
+            <Box
+              p={3}
+              borderRadius="lg"
+              bg="red.50"
+              color="red.600"
+              textAlign="center"
+              fontSize="sm"
+            >
+              {loginError}
+            </Box>
+          )}
+        </Stack>
+      </Box>
     </Flex>
   );
 }

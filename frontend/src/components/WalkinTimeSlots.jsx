@@ -1,13 +1,65 @@
 import { useEffect, useState } from 'react';
-import { Box, Button, Flex, Heading, Text, Tooltip, VStack } from "@chakra-ui/react";
+import { Badge, Box, Button, Flex, Heading, HStack, SimpleGrid, Stack, Text, Tooltip, VStack } from "@chakra-ui/react";
 import { QuestionIcon } from "@chakra-ui/icons";
 import { FaCalendarTimes } from "react-icons/fa";
 import useWalkinStore from '../store/walkin.js';
 
+const statusStyles = {
+    "available": {
+        bg: "green.50",
+        color: "green.600",
+        borderColor: "green.200"
+    },
+    "fully booked": {
+        bg: "red.50",
+        color: "red.600",
+        borderColor: "red.200"
+    },
+    "under maintenance": {
+        bg: "orange.50",
+        color: "orange.600",
+        borderColor: "orange.200"
+    },
+    "reserved": {
+        bg: "purple.50",
+        color: "purple.600",
+        borderColor: "purple.200"
+    },
+    "unavailable": {
+        bg: "gray.100",
+        color: "gray.600",
+        borderColor: "gray.200"
+    }
+};
+
+const getStatusStyle = (status) => {
+    if (!status) {
+        return {
+            label: "Unavailable",
+            ...statusStyles["unavailable"]
+        };
+    }
+
+    const normalized = typeof status === "string" ? status.toLowerCase() : status;
+    const style = statusStyles[normalized];
+
+    if (style) {
+        return {
+            label: typeof status === "string" ? status : "Available",
+            ...style
+        };
+    }
+
+    return {
+        label: typeof status === "string" ? status : "Status",
+        bg: "gray.100",
+        color: "gray.700",
+        borderColor: "gray.200"
+    };
+};
+
 const ScheduleTimeSlots = () => {
-    const { setSelectedTimeSlot, selectedDay, scheduleData, selectedTime, setSelectedTime, fetchScheduleByDate } = useWalkinStore();
-    const [showButtons, setShowButtons] = useState(false);
-    const [buttonClicked, setButtonClicked] = useState(false);
+    const { setSelectedTimeSlot, selectedDay, scheduleData, setSelectedTime, fetchScheduleByDate } = useWalkinStore();
     const [selectedSlot, setSelectedSlot] = useState(null);
 
     useEffect(() => {
@@ -20,15 +72,6 @@ const ScheduleTimeSlots = () => {
         fetchSchedule();
     }, [selectedDay, fetchScheduleByDate]);
 
-    useEffect(() => {
-        if (scheduleData) {
-            setShowButtons(true);
-        } else {
-            setShowButtons(false);
-            setButtonClicked(false);
-        }
-    }, [scheduleData]);
-
     const handleTimeClick = (slot) => {
         setSelectedSlot(slot); // Set the selected slot data
         setSelectedTime({
@@ -36,20 +79,22 @@ const ScheduleTimeSlots = () => {
             endTime: slot.endTime || slot._endTime
         });
         setSelectedTimeSlot(slot); // Store the entire slot object
-        console.log("Selected Slot Data:", slot); // Log the selected slot data
     };
 
+    const timeSlots = scheduleData?.timeSlots ?? [];
+    const hasSlots = timeSlots.length > 0;
+
     return (
-        <Box width="100%" height="25.5em" display="flex" flexDirection="column">
-            <Flex color="#071434" p={4} justify="space-between" align="center">
+        <Box width="100%" display="flex" flexDirection="column" bg="white" borderRadius="xl" boxShadow="lg">
+            <Flex color="#071434" p={4} justify="space-between" align="center" borderBottom="1px solid" borderColor="gray.100">
                 <Text fontSize="lg" fontWeight="semibold">Time Slots</Text>
                 <Tooltip label="Help" aria-label="A tooltip">
                     <QuestionIcon />
                 </Tooltip>
             </Flex>
 
-            {!buttonClicked && !showButtons && (
-                <Box p={4} flex="1" display="flex" justifyContent="center" alignItems="center">
+            {!hasSlots && (
+                <Box p={6} flex="1" display="flex" justifyContent="center" alignItems="center">
                     <VStack
                         spacing={6}
                         alignItems="center"
@@ -61,29 +106,68 @@ const ScheduleTimeSlots = () => {
                 </Box>
             )}
 
-            {showButtons && scheduleData && scheduleData.timeSlots && (
-                 <Box p={4} flex="1">
-                    <Flex direction="row" flexWrap="wrap" justify="space-between" height="100%">
-                        {scheduleData.timeSlots.map((slot) => (
-                            <Button
-                                key={slot._startTime}
-                                w='48%'
-                                bg={selectedSlot?._startTime === slot._startTime ? "white" : "white"}
-                                border={selectedSlot?._startTime === slot._startTime ? "2px solid #FE7654" : "2px solid transparent"} 
-                                onClick={() => handleTimeClick(slot)}
-                                height="40%"
-                                boxShadow="lg"
-                                mb={2}
-                                _hover={{ bg: selectedSlot === slot ? "gray.300" : "white" }} 
-                            >
-                                <VStack spacing={5} align="center">
-                                    <Heading fontSize='sm'>{`${slot._startTime} - ${slot._endTime}`}</Heading>
-                                    <Text fontSize='sm'>Available Slot/s: {slot._availableSlots}</Text>
-                                    <Text fontSize='xs' fontWeight='extrabold'>Status: {slot._status}</Text>
-                                </VStack>
-                            </Button>
-                        ))}
-                    </Flex>
+            {hasSlots && (
+                <Box p={{ base: 4, md: 6 }} flex="1">
+                    <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={{ base: 4, md: 5 }}>
+                        {timeSlots.map((slot) => {
+                            const startTime = slot._startTime || slot.startTime;
+                            const endTime = slot._endTime || slot.endTime;
+                            const activeStart = selectedSlot?._startTime || selectedSlot?.startTime;
+                            const isActive = activeStart === startTime;
+                            const statusInfo = getStatusStyle(slot._status || slot.status);
+
+                            return (
+                                <Button
+                                    key={`${startTime}-${endTime}`}
+                                    onClick={() => handleTimeClick(slot)}
+                                    bg="white"
+                                    borderWidth="1px"
+                                    borderColor={isActive ? "blue.400" : "gray.200"}
+                                    boxShadow={isActive ? "0 0 0 1px rgba(66, 153, 225, 0.6)" : "sm"}
+                                    h="auto"
+                                    py={{ base: 4, md: 5 }}
+                                    px={{ base: 4, md: 5 }}
+                                    borderRadius="lg"
+                                    justifyContent="flex-start"
+                                    textAlign="left"
+                                    _hover={{ borderColor: isActive ? "blue.500" : "gray.300", boxShadow: "md" }}
+                                    _focusVisible={{ boxShadow: "0 0 0 2px rgba(66, 153, 225, 0.6)" }}
+                                    _active={{ transform: "scale(0.99)" }}
+                                >
+                                    <Stack spacing={3} align="flex-start" w="full">
+                                        <Heading fontSize="md" fontWeight="semibold">
+                                            {`${startTime} - ${endTime}`}
+                                        </Heading>
+                                        <HStack spacing={2} flexWrap="wrap">
+                                            <Badge
+                                                px={3}
+                                                py={1}
+                                                bg="gray.100"
+                                                color="gray.700"
+                                                borderRadius="full"
+                                                fontWeight="medium"
+                                            >
+                                                Available: {slot._availableSlots ?? slot.availableSlots ?? 0}
+                                            </Badge>
+                                            <Badge
+                                                px={3}
+                                                py={1}
+                                                bg={statusInfo.bg}
+                                                color={statusInfo.color}
+                                                borderRadius="full"
+                                                borderWidth="1px"
+                                                borderColor={statusInfo.borderColor}
+                                                fontWeight="medium"
+                                                textTransform="capitalize"
+                                            >
+                                                {statusInfo.label}
+                                            </Badge>
+                                        </HStack>
+                                    </Stack>
+                                </Button>
+                            );
+                        })}
+                    </SimpleGrid>
                 </Box>
             )}
         </Box>

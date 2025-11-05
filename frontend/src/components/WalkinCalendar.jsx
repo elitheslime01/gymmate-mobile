@@ -79,14 +79,14 @@ const ScheduleCalendar = () => {
     };
 
     return (
-        <Box width="100%" bg="white" borderRadius="lg" boxShadow="lg">
-            <Flex color="#071434" p={4} justify="space-between" align="center">
+        <Box width="100%" bg="white" borderRadius="xl" boxShadow="lg" display="flex" flexDirection="column">
+            <Flex color="#071434" p={4} justify="space-between" align="center" borderBottom="1px solid" borderColor="gray.100">
                 <Text fontSize="lg" fontWeight="semibold">Date</Text>
                 <Tooltip label="Help" aria-label="A tooltip">
                     <QuestionIcon />
                 </Tooltip>
             </Flex>
-            <Box p={4}>
+            <Box p={{ base: 4, md: 6 }} flex="1">
                 <Flex justify="space-between" align="center" mb={4}>
                     <IconButton
                         icon={<ChevronLeftIcon />}
@@ -102,7 +102,7 @@ const ScheduleCalendar = () => {
                         colorScheme="gray"
                     />
                 </Flex>
-                <Grid templateColumns="repeat(7, 1fr)" gap={2}>
+                <Grid templateColumns="repeat(7, 1fr)" gap={{ base: 1, md: 2 }}>
                     {renderWeekDays()}
                     {renderDays()}
                 </Grid>

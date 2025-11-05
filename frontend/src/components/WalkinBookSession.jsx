@@ -1,4 +1,4 @@
-import { Box, Button, Flex, Heading, useToast } from "@chakra-ui/react";
+import { Box, Button, Flex, Heading, Stack, useToast } from "@chakra-ui/react";
 import useWalkinStore from "../store/walkin";
 import WalkinCalendar from "../components/WalkinCalendar";
 import WalkinTimeSlots from "../components/WalkinTimeSlots";
@@ -92,84 +92,60 @@ const WalkinBookSession = () => {
 
     
     return (
-        <Box 
-            h="calc(100vh - 10vh)"
+        <Box
             w="100%"
-            maxW="1200px" // Added max width for better scaling
-            mx="auto" // Center the container
-            p={4}
-            display="flex"
-            flexDirection="column"
+            bg="white"
+            borderRadius="2xl"
+            boxShadow="xl"
+            p={{ base: 4, md: 6, xl: 8 }}
         >
-            <Heading as="h1" size="md" mb={6}>Book a session</Heading>
-            
-            <Flex 
-                direction={{ base: "column", md: "row" }}
-                gap={8} // Increased gap
-                flex="1"
-                mb={6}
-                h="calc(100% - 120px)"
-                justify="center" // Center content
-                align="stretch"
-            >
-                <Box 
-                    flex="1"
-                    minW={{ base: "100%", md: "450px" }} // Increased minimum width
-                    maxW={{ base: "100%", md: "600px" }} // Added maximum width
-                    minH={{ base: "300px", md: "auto" }}
-                    maxH="100%"
-                    overflow="auto"
-                    bg="white"
-                    borderRadius="lg"
-                >
-                    <WalkinCalendar />
-                </Box>
-                <Box 
-                    flex="1"
-                    minW={{ base: "100%", md: "450px" }} // Increased minimum width
-                    maxW={{ base: "100%", md: "600px" }} // Added maximum width
-                    minH={{ base: "300px", md: "auto" }}
-                    maxH="100%"
-                    overflow="auto"
-                    borderRadius="lg"
-                >
-                    <WalkinTimeSlots />
-                </Box>
-            </Flex>
+            <Stack spacing={{ base: 6, md: 8 }}>
+                <Heading as="h1" size="lg">Book a session</Heading>
 
-            <Flex 
-                justify="center"
-                mt="auto"
-                pt={4}
-                borderTop="1px solid"
-                borderColor="gray.200"
-                w="100%"
-                gap={4}
-            >
-                <Button
-                    bgColor="white"
-                    color="#FE7654"
-                    border="2px"
-                    borderColor="#FE7654"
-                    _hover={{ bg: '#FE7654', color: 'white' }}
-                    _active={{ bg: '#cc4a2d' }}
-                    w="50%"
-                    onClick={handleBkCancel}
+                <Flex
+                    direction={{ base: "column", xl: "row" }}
+                    gap={{ base: 6, md: 8 }}
+                    align="stretch"
                 >
-                    Cancel
-                </Button>
-                <Button
-                    bgColor="#FE7654"
-                    color="white"
-                    _hover={{ bg: '#e65c3b' }}
-                    _active={{ bg: '#cc4a2d' }}
-                    w="50%"
-                    onClick={handleBkProceed}
+                    <Box flex="1" minW={0}>
+                        <WalkinCalendar />
+                    </Box>
+                    <Box flex="1" minW={0}>
+                        <WalkinTimeSlots />
+                    </Box>
+                </Flex>
+
+                <Stack
+                    direction={{ base: "column", sm: "row" }}
+                    spacing={4}
+                    pt={{ base: 2, md: 4 }}
+                    borderTop="1px solid"
+                    borderColor="gray.200"
                 >
-                    Proceed
-                </Button>
-            </Flex>
-            
+                    <Button
+                        bgColor="white"
+                        color="#FE7654"
+                        border="2px"
+                        borderColor="#FE7654"
+                        _hover={{ bg: "#FE7654", color: "white" }}
+                        _active={{ bg: "#cc4a2d" }}
+                        flex="1"
+                        onClick={handleBkCancel}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        bgColor="#FE7654"
+                        color="white"
+                        _hover={{ bg: "#e65c3b" }}
+                        _active={{ bg: "#cc4a2d" }}
+                        flex="1"
+                        onClick={handleBkProceed}
+                    >
+                        Proceed
+                    </Button>
+                </Stack>
+            </Stack>
         </Box>
     );
 };
