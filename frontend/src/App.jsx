@@ -4,6 +4,7 @@ import HomePage from "./pages/HomePage";
 import BookingPage from "./pages/BookingPage";
 import NotificationPage from "./pages/NotificationPage";
 import AccountPage from "./pages/AccountPage";
+import FeedbackPage from "./pages/FeedbackPage";
 import AppLayout from "./components/layout/AppLayout";
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
     "/booking": "Booking",
     "/notification": "Notifications",
     "/account": "Account",
+    "/feedback": "Feedback",
   };
 
   const pageTitle = ROUTE_TITLES[primaryPath] || "";
@@ -29,6 +31,7 @@ function App() {
         <Route path="/booking" element={<BookingPage />} />
         <Route path="/notification" element={<NotificationPage />} />
         <Route path="/account" element={<AccountPage />} />
+  <Route path="/feedback" element={<FeedbackPage />} />
       </Routes>
     </AppLayout>
   );
