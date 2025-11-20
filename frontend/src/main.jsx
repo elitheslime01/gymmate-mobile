@@ -15,7 +15,7 @@ const theme = extendTheme({
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <ChakraProvider theme={theme}>
+      <ChakraProvider theme={theme} toastOptions={{ defaultOptions: { position: 'top' } }}>
         <App/>
       </ChakraProvider>
     </BrowserRouter>

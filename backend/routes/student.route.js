@@ -1,5 +1,6 @@
 import express from "express";
-import { createStudent, loginStudent, logoutStudent } from "../controller/student.controller.js";
+import { createStudent, loginStudent, logoutStudent, updateStudent } from "../controller/student.controller.js";
+import upload from "../utils/multer.js";
 
 const router = express.Router();
 
@@ -11,6 +12,9 @@ router.post("/login", loginStudent);
 
 // Route for logging out a new student
 router.post("/logout", logoutStudent);
+
+// Route for updating student profile
+router.put("/:id", upload.single("profileImage"), updateStudent);
 
 const studentsRoutes = router;
 

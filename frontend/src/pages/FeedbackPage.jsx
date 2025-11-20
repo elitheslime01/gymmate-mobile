@@ -264,7 +264,8 @@ const FeedbackPage = () => {
                 onChange={handleAttachmentSelect}
               />
               <Button
-                variant="outline"
+                bg="white"
+                border="2px"
                 borderColor="#FE7654"
                 color="#FE7654"
                 _hover={{ bg: "#FE7654", color: "white" }}
@@ -272,6 +273,10 @@ const FeedbackPage = () => {
                 onClick={() => fileInputRef.current?.click()}
                 isDisabled={attachments.length >= 3 || isSubmitting}
                 alignSelf="flex-start"
+                h={{ base: "50px", md: "40px" }}
+                fontSize={{ base: "lg", md: "md" }}
+                fontWeight="bold"
+                borderRadius="xl"
               >
                 Attach Images
               </Button>
@@ -306,6 +311,11 @@ const FeedbackPage = () => {
               alignSelf="flex-start"
               isDisabled={!category || !subcategory || !message.trim() || isSubmitting}
               isLoading={isSubmitting}
+              h={{ base: "60px", md: "50px" }}
+              fontSize={{ base: "xl", md: "lg" }}
+              fontWeight="bold"
+              borderRadius="xl"
+              px={8}
             >
               Submit Feedback
             </Button>
@@ -330,7 +340,20 @@ const FeedbackPage = () => {
             </AlertDialogBody>
 
             <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onClose} variant="outline">
+              <Button 
+                ref={cancelRef} 
+                onClick={onClose} 
+                bg="white"
+                border="2px"
+                borderColor="#FE7654"
+                color="#FE7654"
+                _hover={{ bg: "#FE7654", color: "white" }}
+                _active={{ bg: "#cc4a2d", color: "white" }}
+                h={{ base: "50px", md: "40px" }}
+                fontSize={{ base: "lg", md: "md" }}
+                fontWeight="bold"
+                borderRadius="xl"
+              >
                 Cancel
               </Button>
               <Button
@@ -341,6 +364,10 @@ const FeedbackPage = () => {
                 onClick={handleConfirmSubmit}
                 isLoading={isSubmitting}
                 ml={3}
+                h={{ base: "50px", md: "40px" }}
+                fontSize={{ base: "lg", md: "md" }}
+                fontWeight="bold"
+                borderRadius="xl"
               >
                 Submit
               </Button>

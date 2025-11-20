@@ -3,70 +3,114 @@ import { Buffer } from "buffer";
 const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:5001";
 const DEFAULT_COUNT = Number.parseInt(process.env.FEEDBACK_COUNT || process.argv[2] || "16", 10);
 const FEEDBACK_COUNT = Number.isNaN(DEFAULT_COUNT) || DEFAULT_COUNT <= 0 ? 16 : DEFAULT_COUNT;
+const LANGUAGE_MODE = (process.env.FEEDBACK_LANGUAGE_MODE || "mixed").toLowerCase();
+const SENTIMENT_MODE = (process.env.FEEDBACK_SENTIMENT_MODE || "balanced").toLowerCase();
 
 const englishSamples = {
   positive: [
     {
       language: "English",
       category: "Walk-in Booking",
-      subcategory: "Scheduling conflict",
-      message: "Smart suggestions helped me rearrange my booking without stress.",
+      subcategory: "Other booking concern",
+      message: "Auto-filled participant info saved me from retyping everyone's names.",
     },
     {
       language: "English",
       category: "Queue & Time In/Out",
-      subcategory: "Unable to time out",
-      message: "Loved seeing the live timer—clocking out felt instant.",
+      subcategory: "Delayed updates",
+      message: "Queue reminder pinged right before my slot—perfect timing.",
+    },
+    {
+      language: "English",
+      category: "Account & Login",
+      subcategory: "Password reset",
+      message: "Backup codes synced to my email instantly; super reassuring.",
+    },
+    {
+      language: "English",
+      category: "AR Image Upload",
+      subcategory: "Image quality",
+      message: "New lighting guide ensured every AR badge looked studio-ready.",
+    },
+    {
+      language: "English",
+      category: "Mobile Experience",
+      subcategory: "Performance",
+      message: "Dark mode looks slick and keeps my battery cool.",
+    },
+    {
+      language: "English",
+      category: "Walk-in Booking",
+      subcategory: "Booking confirmation issue",
+      message: "Confirmation PDF now lists equipment needs—super helpful reminder.",
+    },
+    {
+      language: "English",
+      category: "Queue & Time In/Out",
+      subcategory: "Unable to time in",
+      message: "The nudge to stretch while waiting actually made the queue fun.",
     },
     {
       language: "English",
       category: "Account & Login",
       subcategory: "Other login concern",
-      message: "Single sign-on integration is fantastic; saves me so many steps.",
+      message: "Biometric login never misses—it unlocks faster than my laptop.",
     },
     {
       language: "English",
       category: "AR Image Upload",
       subcategory: "Other AR concern",
-      message: "The preview overlay is brilliant. I can line up shots perfectly.",
+      message: "Layer previews let me stack milestones like trading cards—love it.",
     },
     {
       language: "English",
       category: "Mobile Experience",
       subcategory: "Notifications",
-      message: "Push alerts are timely and never spammy—great balance.",
+      message: "Smart digest rolls multiple alerts into one tidy summary.",
+    },
+    {
+      language: "English",
+      category: "Mobile Experience",
+      subcategory: "Layout issue",
+      message: "Resizable text sliders mean my dad can finally read the app easily.",
+    },
+    {
+      language: "English",
+      category: "Walk-in Booking",
+      subcategory: "Scheduling conflict",
+      message: "Conflict resolver suggested a coach swap that fit perfectly.",
     },
   ],
   neutral: [
     {
       language: "English",
       category: "Walk-in Booking",
-      subcategory: "Other booking concern",
-      message: "Booking flow is okay, though I still double-check slot details.",
+      subcategory: "Scheduling conflict",
+      message: "Conflict warning pops up reliably, though I still confirm manually.",
     },
     {
       language: "English",
       category: "Queue & Time In/Out",
-      subcategory: "Delayed updates",
-      message: "Queue updates arrive on schedule most days, except around lunch.",
+      subcategory: "Unable to time in",
+      message: "Time-in works most mornings but occasionally needs a second tap.",
     },
     {
       language: "English",
       category: "Account & Login",
-      subcategory: "Password reset",
-      message: "Password reset email arrived, but the link expires a bit fast.",
-    },
-    {
-      language: "English",
-      category: "Mobile Experience",
-      subcategory: "Layout issue",
-      message: "Tablet layout is serviceable, yet some buttons feel large.",
+      subcategory: "Profile information",
+      message: "Profile editor saves changes, yet the reload animation feels long.",
     },
     {
       language: "English",
       category: "AR Image Upload",
-      subcategory: "Image quality",
-      message: "Image quality is consistent, although thumbnails appear slightly dim.",
+      subcategory: "Upload failed",
+      message: "Uploads usually succeed, though weak signal forces a retry.",
+    },
+    {
+      language: "English",
+      category: "Mobile Experience",
+      subcategory: "Notifications",
+      message: "Notifications arrive in batches—acceptable, just slightly delayed.",
     },
   ],
   negative: [
@@ -74,31 +118,73 @@ const englishSamples = {
       language: "English",
       category: "Walk-in Booking",
       subcategory: "Cannot reserve a slot",
-      message: "Recurring slots still clash with class schedule—needs smarter conflict checks.",
+      message: "Waitlist auto-assign grabbed the wrong timeslot again.",
     },
     {
       language: "English",
       category: "Queue & Time In/Out",
-      subcategory: "Unable to time in",
-      message: "Time-in button froze twice this morning; I had to restart the app.",
+      subcategory: "Delayed updates",
+      message: "Still staring at a \"calculating\" spinner whenever the queue spikes.",
     },
     {
       language: "English",
       category: "Account & Login",
-      subcategory: "Profile information",
-      message: "Profile auto-fill wiped my contact info; frustrating to retype everything.",
+      subcategory: "Other login concern",
+      message: "Session expires mid-form and dumps every detail I typed.",
     },
     {
       language: "English",
       category: "AR Image Upload",
-      subcategory: "Upload failed",
-      message: "Uploads hung at 99% and never completed—even on Wi-Fi.",
+      subcategory: "Other AR concern",
+      message: "AR marker drifts after placement so I can't trust alignment.",
     },
     {
       language: "English",
       category: "Mobile Experience",
       subcategory: "Performance",
-      message: "App drained my battery during a long queue session.",
+      message: "App overheats my phone whenever I multitask.",
+    },
+    {
+      language: "English",
+      category: "Walk-in Booking",
+      subcategory: "Scheduling conflict",
+      message: "Conflict alerts fire too late—I'm already double-booked by then.",
+    },
+    {
+      language: "English",
+      category: "Queue & Time In/Out",
+      subcategory: "Unable to time in",
+      message: "Scanner misses my QR code half the time and holds up the line.",
+    },
+    {
+      language: "English",
+      category: "Account & Login",
+      subcategory: "Password reset",
+      message: "Reset email links expire in minutes; I had to request four times.",
+    },
+    {
+      language: "English",
+      category: "AR Image Upload",
+      subcategory: "Upload failed",
+      message: "Uploads silently fail when I attach more than one photo.",
+    },
+    {
+      language: "English",
+      category: "Mobile Experience",
+      subcategory: "Layout issue",
+      message: "Buttons jump when the keyboard opens, so I keep tapping the wrong action.",
+    },
+    {
+      language: "English",
+      category: "Walk-in Booking",
+      subcategory: "Other booking concern",
+      message: "Saved templates randomly disappear, forcing me to rebuild sessions.",
+    },
+    {
+      language: "English",
+      category: "Queue & Time In/Out",
+      subcategory: "Delayed updates",
+      message: "Push alerts arrive after I've already been called—what's the point?",
     },
   ],
 };
@@ -108,64 +194,64 @@ const tagalogSamples = {
     {
       language: "Tagalog",
       category: "Walk-in Booking",
-      subcategory: "Booking confirmation issue",
-      message: "May kasamang helpful tips ang confirmation email—salamat!",
+      subcategory: "Other booking concern",
+      message: "Yung auto-suggested na coach names ang dali sundan kaya mabilis pumili ng slot.",
     },
     {
       language: "Tagalog",
       category: "Queue & Time In/Out",
-      subcategory: "Delayed updates",
-      message: "Real-time ang countdown ngayon; hindi na ako nabibigla.",
+      subcategory: "Unable to time in",
+      message: "One tap lang talaga ngayon ang time-in; sakto sa mabilisang days.",
     },
     {
       language: "Tagalog",
       category: "Account & Login",
-      subcategory: "Profile information",
-      message: "Ang ganda ng bagong avatar picker, sakto sa gusto kong kulay.",
+      subcategory: "Password reset",
+      message: "May SMS code na agad, hindi ko na kailangang maghintay ng email.",
     },
     {
       language: "Tagalog",
       category: "AR Image Upload",
-      subcategory: "Image quality",
-      message: "Ang linaw ng preview, kaya confident ako bago mag-submit.",
+      subcategory: "Other AR concern",
+      message: "Ang bagong grid guide tumutulong para pantay ang badge.",
     },
     {
       language: "Tagalog",
       category: "Mobile Experience",
-      subcategory: "Performance",
-      message: "Smooth ang transitions kahit naka-low signal lang ako.",
+      subcategory: "Notifications",
+      message: "Tahimik ang notifications pero sakto ang timing nila.",
     },
   ],
   neutral: [
     {
       language: "Tagalog",
       category: "Walk-in Booking",
-      subcategory: "Other booking concern",
-      message: "Maayos naman ang schedule view, pero medyo crowded ang text.",
+      subcategory: "Scheduling conflict",
+      message: "Nakakatulong ang conflict alert kahit kailangan ko pa ring mag-double check.",
     },
     {
       language: "Tagalog",
       category: "Queue & Time In/Out",
-      subcategory: "Unable to time out",
-      message: "Nagwo-work ang time-out pero minsan may half-second delay.",
+      subcategory: "Delayed updates",
+      message: "Paminsan-minsan delayed ang count pero bumabawi naman.",
     },
     {
       language: "Tagalog",
       category: "Account & Login",
-      subcategory: "Password reset",
-      message: "Kaya naman sundan ang instructions, pero medyo mahaba basahin.",
+      subcategory: "Profile information",
+      message: "Pwede naman ma-edit ang profile, medyo mabagal lang mag-save.",
+    },
+    {
+      language: "Tagalog",
+      category: "AR Image Upload",
+      subcategory: "Image quality",
+      message: "Sapat ang quality kahit may bahagyang grain kapag gabi ako nag-a-upload.",
     },
     {
       language: "Tagalog",
       category: "Mobile Experience",
       subcategory: "Layout issue",
-      message: "Okay ang bagong buttons, pero sana mas contrasty ang labels.",
-    },
-    {
-      language: "Tagalog",
-      category: "AR Image Upload",
-      subcategory: "Upload failed",
-      message: "Minsan kailangan ulitin ang upload, pero bumabalik naman agad.",
+      message: "Maayos ang layout pero may ilang button na sobrang lapit sa edge.",
     },
   ],
   negative: [
@@ -173,39 +259,62 @@ const tagalogSamples = {
       language: "Tagalog",
       category: "Walk-in Booking",
       subcategory: "Cannot reserve a slot",
-      message: "Hanggang ngayon hindi pa rin stable ang waitlist, sayang ang oras.",
+      message: "Lumolobo pa rin ang waitlist kahit may bakanteng slot sa calendar.",
     },
     {
       language: "Tagalog",
       category: "Queue & Time In/Out",
-      subcategory: "Delayed updates",
-      message: "Na-late ako kasi walang update sa queue; hindi ko agad nalaman.",
+      subcategory: "Unable to time out",
+      message: "Nai-stuck ang time-out button kapag nawalan ng data.",
     },
     {
       language: "Tagalog",
       category: "Account & Login",
       subcategory: "Other login concern",
-      message: "Nagdi-disconnect ang login kapag nagpalit ako ng network.",
+      message: "Nagla-log out ako bigla kapag nag-switch ng Wi-Fi.",
     },
     {
       language: "Tagalog",
       category: "AR Image Upload",
       subcategory: "Upload failed",
-      message: "Labo ng final render kahit malinaw ang original photo ko.",
+      message: "Nawawala ang attachment kapag sabay ko silang ina-upload.",
     },
     {
       language: "Tagalog",
       category: "Mobile Experience",
       subcategory: "Performance",
-      message: "Nagha-hang ang app kapag sabay bukas ang feedback at booking page.",
+      message: "Lag pa rin kapag naka-low power mode ang phone ko.",
     },
   ],
 };
 
 const sentiments = ["positive", "neutral", "negative"];
 
+const resolveSentimentTargets = () => {
+  if (SENTIMENT_MODE === "positive-only") {
+    return ["positive"];
+  }
+  if (SENTIMENT_MODE === "negative-only") {
+    return ["negative"];
+  }
+  if (SENTIMENT_MODE === "neutral-only") {
+    return ["neutral"];
+  }
+  return sentiments;
+};
+
+const shouldUseEnglish = () => {
+  if (LANGUAGE_MODE === "english-only") {
+    return true;
+  }
+  if (LANGUAGE_MODE === "tagalog-only") {
+    return false;
+  }
+  return Math.random() < 0.5;
+};
+
 const pickRandomSample = (sentiment) => {
-  const useEnglish = Math.random() < 0.5;
+  const useEnglish = shouldUseEnglish();
   const pool = useEnglish ? englishSamples[sentiment] : tagalogSamples[sentiment];
   if (!pool || pool.length === 0) {
     throw new Error(`No samples available for ${useEnglish ? "English" : "Tagalog"} sentiment: ${sentiment}`);
@@ -250,10 +359,11 @@ const run = async () => {
   try {
     console.log(`Sending ${FEEDBACK_COUNT} random feedback entries...`);
 
-    const baseCount = Math.floor(FEEDBACK_COUNT / sentiments.length);
-    const remainder = FEEDBACK_COUNT % sentiments.length;
+    const sentimentTargets = resolveSentimentTargets();
+    const baseCount = Math.floor(FEEDBACK_COUNT / sentimentTargets.length);
+    const remainder = FEEDBACK_COUNT % sentimentTargets.length;
 
-    const sentimentSequence = sentiments.flatMap((sentiment, index) => {
+    const sentimentSequence = sentimentTargets.flatMap((sentiment, index) => {
       const count = baseCount + (index < remainder ? 1 : 0);
       return Array.from({ length: count }, () => sentiment);
     });

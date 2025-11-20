@@ -81,11 +81,15 @@ export default function Home() {
               </Text>
               <Button
                 alignSelf="flex-start"
-                colorScheme="orange"
                 bg="#FE7654"
+                color="white"
                 _hover={{ bg: "#e65c3b" }}
                 _active={{ bg: "#cc4a2d" }}
                 onClick={action.action}
+                h={{ base: "50px", md: "40px" }}
+                fontSize={{ base: "lg", md: "md" }}
+                fontWeight="bold"
+                borderRadius="xl"
               >
                 {action.cta}
               </Button>

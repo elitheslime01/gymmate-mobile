@@ -1,4 +1,5 @@
 import {
+  Avatar,
   Badge,
   Box,
   Button,
@@ -370,12 +371,17 @@ const WalkinTimeInOut = () => {
 
             {allowTimeActions && (
               <Stack spacing={3}>
-                <Stack direction={{ base: "column", sm: "row" }} spacing={3}>
+                <Stack direction="row" spacing={3}>
                   <Button
                     bg="#FE7654"
                     color="white"
                     _hover={{ bg: "#e65c3b" }}
                     _active={{ bg: "#cc4a2d" }}
+                    h="60px"
+                    fontSize={{ base: "xl", md: "lg" }}
+                    fontWeight="bold"
+                    borderRadius="xl"
+                    flex="1"
                     isDisabled={hasTimedIn || !isTimeInAllowed(booking)}
                     onClick={async () => {
                       const success = await timeIn(booking._id, user._id);
@@ -409,6 +415,11 @@ const WalkinTimeInOut = () => {
                     color="white"
                     _hover={{ bg: "#e65c3b" }}
                     _active={{ bg: "#cc4a2d" }}
+                    flex="1"
+                    h="60px"
+                    fontSize={{ base: "xl", md: "lg" }}
+                    fontWeight="bold"
+                    borderRadius="xl"
                     isDisabled={!hasTimedIn || hasTimedOut}
                     onClick={async () => {
                       const success = await timeOut(booking._id, user._id);
@@ -433,7 +444,6 @@ const WalkinTimeInOut = () => {
                         });
                       }
                     }}
-                    flex="1"
                   >
                     Time Out
                   </Button>
@@ -468,41 +478,54 @@ const WalkinTimeInOut = () => {
         </Button>
 
         <Stack spacing={{ base: 6, md: 8 }}>
-          <Card bg="white" boxShadow="lg">
+          <Card bg="white" boxShadow="lg" borderRadius="xl">
             <CardBody>
-              <Stack spacing={1}>
-                <Heading size="sm" color="#0a2342">
-                  Logged Student
-                </Heading>
-                <Text fontWeight="semibold" color="gray.800">
-                  {`${user?._fName || ""} ${user?._lName || ""}`.trim() || "Unknown Student"}
-                </Text>
-                {user?._umakEmail && (
-                  <Text fontSize="sm" color="gray.600">
-                    Email: {user._umakEmail}
+              <Flex gap={4} align="center">
+                <Avatar
+                  size={{ base: "lg", md: "xl" }}
+                  name={`${user?._fName || ""} ${user?._lName || ""}`.trim() || "User"}
+                  bg="#FE7654"
+                  color="white"
+                  fontWeight="bold"
+                  src={user?._profileImage ? `data:image/jpeg;base64,${user._profileImage}` : undefined}
+                />
+                <Stack spacing={1} flex="1">
+                  <Text fontSize={{ base: "lg", md: "xl" }} fontWeight="bold" color="gray.800">
+                    {`${user?._fName || ""} ${user?._lName || ""}`.trim() || "Unknown Student"}
                   </Text>
-                )}
-                {user?._umakID && (
-                  <Text fontSize="sm" color="gray.600">
-                    Student ID: {user._umakID}
-                  </Text>
-                )}
-              </Stack>
+                  {user?._umakEmail && (
+                    <Text fontSize="sm" color="gray.600">
+                      {user._umakEmail}
+                    </Text>
+                  )}
+                  {user?._umakID && (
+                    <Text fontSize="sm" color="gray.600" fontWeight="medium">
+                      ID: {user._umakID}
+                    </Text>
+                  )}
+                </Stack>
+              </Flex>
             </CardBody>
           </Card>
 
           <Tabs variant="enclosed" colorScheme="orange" isFitted>
-            <TabList bg="white" borderRadius="md" boxShadow="sm" border="1px" borderColor="gray.100">
-              <Tab fontWeight="semibold">Current Session</Tab>
-              <Tab fontWeight="semibold">
-                Upcoming Sessions
-                {queueCount > 0 && (
-                  <Badge ml={2} colorScheme="orange" borderRadius="full">
-                    {queueCount} in queue
-                  </Badge>
-                )}
+            <TabList bg="white" borderRadius="md" boxShadow="sm" border="1px" borderColor="gray.100" flexWrap="wrap">
+              <Tab fontWeight="semibold" minW="0" flex={{ base: "1 1 auto", md: "1" }}>
+                <Text noOfLines={1}>Current Session</Text>
               </Tab>
-              <Tab fontWeight="semibold">Past Sessions</Tab>
+              <Tab fontWeight="semibold" minW="0" flex={{ base: "1 1 auto", md: "1" }}>
+                <Flex align="center" justify="center" gap={2} w="full">
+                  <Text noOfLines={1}>Upcoming Sessions</Text>
+                  {queueCount > 0 && (
+                    <Badge colorScheme="orange" borderRadius="full" fontSize="xs" flexShrink={0}>
+                      {queueCount}
+                    </Badge>
+                  )}
+                </Flex>
+              </Tab>
+              <Tab fontWeight="semibold" minW="0" flex={{ base: "1 1 auto", md: "1" }}>
+                <Text noOfLines={1}>Past Sessions</Text>
+              </Tab>
             </TabList>
             <TabPanels mt={4}>
               <TabPanel px={0}>

@@ -175,25 +175,33 @@ const WalkinReview = () => {
                             </VStack>
                         </Stack>
                     </Stack>
-                    <Stack direction={{ base: "column", sm: "row" }} spacing={4}>
+                    <Stack direction="row" spacing={4}>
                         <Button
-                            bgColor="white"
+                            bg="white"
                             color="#FE7654"
                             border="2px"
                             borderColor="#FE7654"
-                            _hover={{ bg: '#FE7654', color: 'white' }}
-                            _active={{ bg: '#cc4a2d' }}
+                            _hover={{ bg: "#FE7654", color: "white" }}
+                            _active={{ bg: "#cc4a2d", color: "white" }}
                             flex="1"
+                            h="60px"
+                            fontSize={{ base: "xl", md: "lg" }}
+                            fontWeight="bold"
+                            borderRadius="xl"
                             onClick={handleRevCancel}
                         >
                             Cancel
                         </Button>
                         <Button
-                            bgColor='#FE7654'
-                            color='white'
-                            _hover={{ bg: '#e65c3b' }}
-                            _active={{ bg: '#cc4a2d' }}
+                            bg="#FE7654"
+                            color="white"
+                            _hover={{ bg: "#e65c3b" }}
+                            _active={{ bg: "#cc4a2d" }}
                             flex="1"
+                            h="60px"
+                            fontSize={{ base: "xl", md: "lg" }}
+                            fontWeight="bold"
+                            borderRadius="xl"
                             onClick={handleRevProceed}
                         >
                             Confirm Slot
@@ -214,21 +222,29 @@ const WalkinReview = () => {
                         <ModalFooter gap={4}>
                             <Button 
                                 onClick={onClose} 
-                                bgColor="white"
+                                bg="white"
                                 color="#FE7654"
                                 border="2px"
                                 borderColor="#FE7654"
-                                _hover={{ bg: '#FE7654', color: 'white' }}
-                                _active={{ bg: '#cc4a2d' }}
+                                _hover={{ bg: "#FE7654", color: "white" }}
+                                _active={{ bg: "#cc4a2d", color: "white" }}
                                 flex="1"
+                                h={{ base: "50px", md: "40px" }}
+                                fontSize={{ base: "lg", md: "md" }}
+                                fontWeight="bold"
+                                borderRadius="xl"
                             >Cancel
                             </Button>
                             <Button 
-                                bgColor='#FE7654'
-                                color='white'
-                                _hover={{ bg: '#e65c3b' }}
-                                _active={{ bg: '#cc4a2d' }} 
+                                bg="#FE7654"
+                                color="white"
+                                _hover={{ bg: "#e65c3b" }}
+                                _active={{ bg: "#cc4a2d" }} 
                                 flex="1"
+                                h={{ base: "50px", md: "40px" }}
+                                fontSize={{ base: "lg", md: "md" }}
+                                fontWeight="bold"
+                                borderRadius="xl"
                                 onClick={handleConfirm}
                             >Confirm
                             </Button>

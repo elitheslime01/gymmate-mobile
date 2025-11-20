@@ -121,18 +121,27 @@ const ScheduleTimeSlots = () => {
                                     key={`${startTime}-${endTime}`}
                                     onClick={() => handleTimeClick(slot)}
                                     bg="white"
-                                    borderWidth="1px"
-                                    borderColor={isActive ? "blue.400" : "gray.200"}
-                                    boxShadow={isActive ? "0 0 0 1px rgba(66, 153, 225, 0.6)" : "sm"}
+                                    borderWidth="2px"
+                                    borderColor={isActive ? "#FE7654" : "gray.200"}
+                                    boxShadow={isActive ? "0 0 0 2px rgba(254, 118, 84, 0.3)" : "md"}
                                     h="auto"
+                                    minH={{ base: "100px", md: "110px" }}
                                     py={{ base: 4, md: 5 }}
                                     px={{ base: 4, md: 5 }}
-                                    borderRadius="lg"
+                                    borderRadius="xl"
                                     justifyContent="flex-start"
                                     textAlign="left"
-                                    _hover={{ borderColor: isActive ? "blue.500" : "gray.300", boxShadow: "md" }}
-                                    _focusVisible={{ boxShadow: "0 0 0 2px rgba(66, 153, 225, 0.6)" }}
-                                    _active={{ transform: "scale(0.99)" }}
+                                    _hover={{ 
+                                        borderColor: isActive ? "#e65c3b" : "#FE7654", 
+                                        boxShadow: "lg",
+                                        transform: "translateY(-2px)"
+                                    }}
+                                    _focusVisible={{ boxShadow: "0 0 0 3px rgba(254, 118, 84, 0.4)" }}
+                                    _active={{ 
+                                        transform: "scale(0.98)",
+                                        borderColor: "#cc4a2d"
+                                    }}
+                                    transition="all 0.2s"
                                 >
                                     <Stack spacing={3} align="flex-start" w="full">
                                         <Heading fontSize="md" fontWeight="semibold">

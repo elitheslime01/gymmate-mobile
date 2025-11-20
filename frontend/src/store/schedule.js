@@ -1,6 +1,8 @@
 // frontend/src/store/schedule.js
 import { create } from 'zustand';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
+
 const useScheduleStore = create((set) => ({
     currentDate: new Date(),
     selectedDay: null, 
@@ -30,7 +32,7 @@ const useScheduleStore = create((set) => ({
         }
         
         const formattedDate = parsedDate.toISOString().split('T')[0]; // Format date as YYYY-MM-DD
-        const response = await fetch(`http://localhost:5000/api/schedules/${formattedDate}`);
+        const response = await fetch(`${API_BASE_URL}/api/schedules/${formattedDate}`);
         const data = await response.json();
     
         if (response.ok) {
@@ -85,7 +87,7 @@ const useScheduleStore = create((set) => ({
         };
 
         try {
-            const response = await fetch('http://localhost:5000/api/schedules/', {
+            const response = await fetch(`${API_BASE_URL}/api/schedules/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -107,7 +109,7 @@ const useScheduleStore = create((set) => ({
     
     updateSchedule: async (scheduleId, timeSlot) => {
         try {
-            const response = await fetch('http://localhost:5000/api/schedules/update', {
+            const response = await fetch(`${API_BASE_URL}/api/schedules/update`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

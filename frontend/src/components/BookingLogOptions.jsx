@@ -40,27 +40,29 @@ const BookingLogOptions = () => {
                     </Text>
                     <Stack spacing={{ base: 4, md: 6 }}>
                         <Button
-                            bgColor="#FE7654"
+                            bg="#FE7654"
                             color="white"
                             _hover={{ bg: "#e65c3b" }}
                             _active={{ bg: "#cc4a2d" }}
-                            size="lg"
-                            minH="80px"
+                            h="80px"
                             whiteSpace="normal"
-                            fontWeight="semibold"
+                            fontWeight="bold"
+                            fontSize={{ base: "xl", md: "lg" }}
+                            borderRadius="xl"
                             onClick={handleLogOptBook}
                         >
                             I want to book a session.
                         </Button>
                         <Button
-                            bgColor="#FE7654"
+                            bg="#FE7654"
                             color="white"
                             _hover={{ bg: "#e65c3b" }}
                             _active={{ bg: "#cc4a2d" }}
-                            size="lg"
-                            minH="80px"
+                            h="80px"
                             whiteSpace="normal"
-                            fontWeight="semibold"
+                            fontWeight="bold"
+                            fontSize={{ base: "xl", md: "lg" }}
+                            borderRadius="xl"
                             onClick={handleOptLogin}
                         >
                             I want to time in or time out of my session.

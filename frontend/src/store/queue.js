@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
+
 const useQueueStore = create((set) => ({
   queues: [],
   setQueues: (queues) => set({ queues }),
@@ -14,7 +16,7 @@ const useQueueStore = create((set) => ({
   // Add this to your useQueueStore
   fetchAllCurrentMonthQueues: async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/queues/currentMonth', {
+      const response = await fetch(`${API_BASE_URL}/api/queues/currentMonth`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -36,7 +38,7 @@ const useQueueStore = create((set) => ({
       // Clear existing queues before fetching
       set({ queues: [] });
 
-      const response = await fetch(`http://localhost:5000/api/queues/get?date=${date}&startTime=${timeSlot.startTime}&endTime=${timeSlot.endTime}`, {
+      const response = await fetch(`${API_BASE_URL}/api/queues/get?date=${date}&startTime=${timeSlot.startTime}&endTime=${timeSlot.endTime}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -62,7 +64,7 @@ const useQueueStore = create((set) => ({
   
   allocateStudents: async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/queues/allocate', {
+      const response = await fetch(`${API_BASE_URL}/api/queues/allocate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -94,7 +96,7 @@ const useQueueStore = create((set) => ({
     try {
       set({ queues: [] });
 
-      const response = await fetch(`http://localhost:5000/api/queues/get?date=${date}`, {
+      const response = await fetch(`${API_BASE_URL}/api/queues/get?date=${date}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

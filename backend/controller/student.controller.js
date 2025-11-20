@@ -63,6 +63,7 @@ export const loginStudent = async (req, res) => {
             _umakEmail: student._umakEmail,
             _umakID: student._umakID,
             _activeStat: student._activeStat,
+            _profileImage: student._profileImage,
         }
       });    
     } catch (error) {
@@ -124,5 +125,53 @@ export const loginStudent = async (req, res) => {
     } catch (error) {
         console.error("Error during student logout: ", error.message);
         res.status(500).json({ success: false, message: "Server error." });
+    }
+  };
+
+  export const updateStudent = async (req, res) => {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(404).json({ success: false, message: "Invalid student ID" });
+    }
+
+    try {
+        // Handle profile image if uploaded
+        if (req.file) {
+            updateData._profileImage = req.file.buffer.toString('base64');
+        }
+
+        const updatedStudent = await Student.findByIdAndUpdate(
+            id,
+            updateData,
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedStudent) {
+            return res.status(404).json({ success: false, message: "Student not found" });
+        }
+
+        // Return updated user data (exclude password)
+        res.status(200).json({
+            success: true,
+            data: {
+                _id: updatedStudent._id,
+                _fName: updatedStudent._fName,
+                _lName: updatedStudent._lName,
+                _sex: updatedStudent._sex,
+                _college: updatedStudent._college,
+                _course: updatedStudent._course,
+                _year: updatedStudent._year,
+                _section: updatedStudent._section,
+                _umakEmail: updatedStudent._umakEmail,
+                _umakID: updatedStudent._umakID,
+                _activeStat: updatedStudent._activeStat,
+                _profileImage: updatedStudent._profileImage,
+            }
+        });
+    } catch (error) {
+        console.error("Error updating student:", error.message);
+        res.status(500).json({ success: false, message: "Server Error" });
     }
   };

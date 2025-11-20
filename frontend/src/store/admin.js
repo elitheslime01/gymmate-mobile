@@ -1,5 +1,7 @@
 import { create } from 'zustand'; 
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
+
 export const useAdminStore = create((set, get) => ({
   user: null,
   isLoggedIn: false,
@@ -13,7 +15,7 @@ export const useAdminStore = create((set, get) => ({
 
     set({ isLoading: true, error: null });
     try {
-        const response = await fetch('http://localhost:5000/api/admins/login', {
+        const response = await fetch(`${API_BASE_URL}/api/admins/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password }),
@@ -41,7 +43,7 @@ logout: async () => {
   }
 
   try {
-      const response = await fetch('http://localhost:5000/api/admins/logout', {
+      const response = await fetch(`${API_BASE_URL}/api/admins/logout`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId }),

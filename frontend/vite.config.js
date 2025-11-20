@@ -5,6 +5,8 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 5174, // Change to any free port
+    port: 5174,
+    host: '0.0.0.0', // Listen on all network interfaces for mobile access
+    allowedHosts: ['needs-technologies-paul-pulled.trycloudflare.com'],
   },
 })

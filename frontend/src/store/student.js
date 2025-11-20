@@ -102,8 +102,10 @@ export  const useStudentStore = create((set, get) => ({
                 return { success: false, message: data.message || 'Login failed' };
             }
         } catch (error) {
-            set({ error: 'An error occurred during login: ' + error.message, isLoading: false });
-            return { success: false, message: 'An error occurred during login.' };
+            console.error('Login error details:', error);
+            const errorMsg = error.message || 'Unknown error';
+            set({ error: 'An error occurred during login: ' + errorMsg, isLoading: false });
+            return { success: false, message: 'Error: ' + errorMsg };
         }
     },
     
@@ -137,5 +139,30 @@ export  const useStudentStore = create((set, get) => ({
     
     clearError: () => {
         set({ error: null });
+    },
+
+    updateStudent: async (studentId, formData) => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/students/${studentId}`, {
+                method: 'PUT',
+                body: formData, // FormData handles multipart/form-data automatically
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Update localStorage with new user data
+                localStorage.setItem('userData', JSON.stringify(data.data));
+                set({ user: data.data, isLoading: false });
+                return { success: true };
+            } else {
+                set({ error: data.message || 'Update failed', isLoading: false });
+                return { success: false, error: data.message || 'Update failed' };
+            }
+        } catch (error) {
+            set({ error: 'An error occurred during update: ' + error.message, isLoading: false });
+            return { success: false, error: 'An error occurred during update.' };
+        }
     },
 }));

@@ -61,6 +61,9 @@ const studentSchema = new mongoose.Schema({
     _attendedSlots: {
         type: Number,
         default: 0,
+    },
+    _profileImage: {
+        type: String,
     }
 }, {
     timestamps: true

@@ -11,7 +11,7 @@ const AccountPage = () => {
   const navigate = useNavigate();
 
   const quickActions = [
-    { label: "My Account" },
+    { label: "My Account", path: "/my-account" },
     { label: "Booking Transactions" },
     { label: "Feedback", path: "/feedback" },
     { label: "Terms and Conditions" },
@@ -64,7 +64,7 @@ const AccountPage = () => {
         </Heading>
         {isLoggedIn && user ? (
           <Stack spacing={6} direction={{ base: "column", md: "row" }} align={{ base: "flex-start", md: "center" }}>
-            <Avatar name={`${user._fName} ${user._lName}`} size="xl" bg="#FE7654" color="white" />
+            <Avatar name={`${user._fName} ${user._lName}`} size="xl" bg="#FE7654" color="white" src={user._profileImage ? `data:image/jpeg;base64,${user._profileImage}` : undefined} />
             <VStack align="flex-start" spacing={2} flex="1">
               <Text fontWeight="semibold">Full Name: {user._fName} {user._lName}</Text>
               <Text fontWeight="semibold">Student ID: {user._umakID}</Text>
@@ -99,7 +99,19 @@ const AccountPage = () => {
           </Stack>
         )}
         {isLoggedIn && (
-          <Button alignSelf="flex-start" bg="#FE7654" color="white" _hover={{ bg: "#e65c3b" }} _active={{ bg: "#cc4a2d" }} onClick={handleLogout}>
+          <Button 
+            alignSelf="flex-start" 
+            bg="#FE7654" 
+            color="white" 
+            _hover={{ bg: "#e65c3b" }} 
+            _active={{ bg: "#cc4a2d" }} 
+            onClick={handleLogout}
+            h={{ base: "50px", md: "40px" }}
+            fontSize={{ base: "lg", md: "md" }}
+            fontWeight="bold"
+            borderRadius="xl"
+            px={8}
+          >
             Log out
           </Button>
         )}

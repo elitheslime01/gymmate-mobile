@@ -113,10 +113,11 @@ export default function LoginPage() {
               </InputGroup>
               <Button
                 variant="link"
-                colorScheme="blue"
+                color="#FE7654"
                 fontSize="sm"
                 mt={2}
                 alignSelf="flex-start"
+                fontWeight="semibold"
               >
                 Forgot password?
               </Button>
@@ -126,12 +127,12 @@ export default function LoginPage() {
           <Stack spacing={4}>
             <Button
               w="full"
-              h="48px"
+              h={{ base: "60px", md: "48px" }}
               bg="#FE7654"
               color="white"
               fontWeight="bold"
-              fontSize="md"
-              borderRadius="lg"
+              fontSize={{ base: "xl", md: "md" }}
+              borderRadius="xl"
               boxShadow="md"
               _hover={{ bg: "#e65c3b" }}
               _active={{ bg: "#cc4a2d" }}
@@ -142,7 +143,13 @@ export default function LoginPage() {
             </Button>
             <Text fontSize="sm" color="gray.600" textAlign="center">
               Don&apos;t have an account yet?{" "}
-              <Button variant="link" color="#FE7654" fontWeight="bold" px={1}>
+              <Button 
+                variant="link" 
+                color="#FE7654" 
+                fontWeight="bold" 
+                px={1}
+                onClick={() => navigate("/register")}
+              >
                 Register now
               </Button>
             </Text>
