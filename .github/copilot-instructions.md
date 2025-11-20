@@ -1,7 +1,7 @@
-# Copilot Instructions for GymMate Mobile
+# Copilot Instructions for GymMate
 
 ## Project Overview
-GymMate Mobile is a full-stack application for gym session booking and management. It features a priority-based queue system to ensure fair access, AR integration for gym discovery, and walk-in booking capabilities. The backend uses Node.js/Express with MongoDB, while the frontend is built with React, Vite, Chakra UI, and Zustand for state management.
+GymMate is a full-stack web application for booking gym sessions at a university gym. It features a priority-based queue system to ensure fair access, AR integration for gym discovery, and walk-in booking capabilities. The backend uses Node.js/Express with MongoDB, while the frontend is built with React, Vite, Chakra UI, and Zustand for state management.
 
 ## Architecture
 - **Backend**: RESTful API with controllers in `backend/controller/`, models in `backend/models/`, routes in `backend/routes/`. Key entities: students, admins, bookings, schedules, queues, AR codes, feedback.
