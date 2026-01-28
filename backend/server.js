@@ -18,11 +18,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Load .env from backend directory (handles both running from root and backend dir)
-dotenv.config({ path: path.join(__dirname, '.env') })
+// dotenv.config({ path: path.join(__dirname, '.env') })
 
-console.log('Environment check:');
-console.log('MONGODB_URI:', process.env.MONGODB_URI ? 'loaded' : 'MISSING');
-console.log('PORT:', process.env.PORT);
+dotenv.config()
 
 const app = express()
 const PORT = process.env.PORT || 5001
@@ -43,8 +41,25 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/arImage", arImageRoutes);
 app.use("/api/feedback", feedbackRoutes);
 
-app.listen(PORT, '0.0.0.0', () => {
-    connectDB();
-    console.log("Server started at http://localhost:" + PORT);
-    console.log("Network access enabled - use your IP address for mobile devices");
+// app.listen(PORT, '0.0.0.0', () => {
+//     connectDB();
+//     console.log("Server started at http://localhost:" + PORT);
+//     console.log("Network access enabled - use your IP address for mobile devices");
+// });
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'Backend is running' });
 });
+
+// Catch-all handler: send back index.html for client-side routing
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+});
+
+// Start the server only in development
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
