@@ -406,7 +406,6 @@ const WalkinTimeInOut = () => {
                         });
                       }
                     }}
-                    flex="1"
                   >
                     Time In
                   </Button>
