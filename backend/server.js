@@ -30,6 +30,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/public', express.static(path.join(__dirname, '../public'))); 
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+connectDB();
 
 // Register API routes BEFORE app.listen()
 app.use("/api/admins", adminsRoutes)
