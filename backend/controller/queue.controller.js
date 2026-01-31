@@ -6,6 +6,7 @@ import MaxHeap from '../utils/maxHeap.js';
 import Booking from "../models/booking.model.js";
 import Schedule from "../models/schedule.model.js";
 import { updateStudentMetrics } from "./student.controller.js";
+import { createNotification } from "./notification.controller.js";
 
 // Calculate priority score with the new logic
 const calculatePriorityScore = (student) => {
@@ -214,12 +215,14 @@ export const allocateStudentsToBooking = async (req, res) => {
       // Allocate waiting students based on priority
       while (maxHeap.size() > 0 && schedule.timeSlots[timeSlotIndex]._availableSlots > 0) {
         const student = maxHeap.extractMax();
+        const studentId = student._studentId?._id || student._studentId;
         
         const existingBooking = await Booking.findOne({
             _date: queue._date,
             "_timeSlot.startTime": queue._timeSlot.startTime,
             "_timeSlot.endTime": queue._timeSlot.endTime,
         });
+        let bookingId = existingBooking?._id;
     
         if (!existingBooking?.students.some(s => s._studentId.toString() === student._studentId.toString())) {
             // Remove the updateStudentMetrics call here
@@ -235,19 +238,46 @@ export const allocateStudentsToBooking = async (req, res) => {
                     students: [student],
                 });
                 await newBooking.save();
+                bookingId = newBooking._id;
             }
             
             schedule.timeSlots[timeSlotIndex]._availableSlots -= 1;
             allocatedStudents.push(student);
+
+            const dateLabel = new Date(queue._date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+            const slotLabel = `${queue._timeSlot.startTime} - ${queue._timeSlot.endTime}`;
+
+            await createNotification({
+              user: studentId,
+              booking: bookingId,
+              message: `You secured a slot on ${dateLabel} (${slotLabel}).`,
+              type: "QUEUE_SUCCESS",
+              link: "/booking",
+              contextId: `${queue._id}-${studentId}-success`,
+              scheduledFor: queue._date,
+            });
         }
     }
     
       // Handle remaining unallocated waiting students
       while (maxHeap.size() > 0) {
         const student = maxHeap.extractMax();
+        const studentId = student._studentId?._id || student._studentId;
         await updateStudentMetrics(student._studentId, 'unsuccessful');
         student._queueStatus = "Not allocated - No slots available";
         unallocatedStudents.push(student);
+
+        const dateLabel = new Date(queue._date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+        const slotLabel = `${queue._timeSlot.startTime} - ${queue._timeSlot.endTime}`;
+
+        await createNotification({
+          user: studentId,
+          message: `No slot secured for ${dateLabel} (${slotLabel}).`,
+          type: "QUEUE_FAIL",
+          link: "/booking",
+          contextId: `${queue._id}-${studentId}-fail`,
+          scheduledFor: queue._date,
+        });
       }
 
       // Update schedule status if needed

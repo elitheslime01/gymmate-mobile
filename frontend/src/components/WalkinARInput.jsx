@@ -1,8 +1,9 @@
-import { useToast, Box, Button, Divider, Flex, Heading, HStack, PinInput, PinInputField, Stack, Text, VStack } from "@chakra-ui/react";
+import { useToast, Box, Button, Divider, Flex, Heading, HStack, PinInput, PinInputField, Stack, Text, VStack, useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@chakra-ui/react";
 import { FaUpload } from "react-icons/fa";
 import useWalkinStore from "../store/walkin";
 
 const WalkinARInput = () => {
+    const { isOpen, onOpen, onClose } = useDisclosure();
     const { setShowBooking, setShowARInput, setShowReview, arCode, setArCode, checkARCode, setARImage, arImage } = useWalkinStore();
     const toast = useToast();
 
@@ -11,7 +12,7 @@ const WalkinARInput = () => {
         setShowBooking(true);
     };
 
-    const handleARProceed = async () => {
+    const handleProceedClick = () => {
         if (!arCode || !arImage) {
             toast({
                 title: "Error",
@@ -22,6 +23,10 @@ const WalkinARInput = () => {
             });
             return;
         }
+        onOpen();
+    };
+
+    const handleConfirm = async () => {
         try {
             const result = await checkARCode(arCode);
             if (result.success) {
@@ -39,6 +44,7 @@ const WalkinARInput = () => {
         } catch (error) {
             console.error(error);
         }
+        onClose();
     };
 
     const handleImageChange = (event) => {
@@ -142,13 +148,53 @@ const WalkinARInput = () => {
                             fontSize={{ base: "xl", md: "lg" }}
                             fontWeight="bold"
                             borderRadius="xl"
-                            onClick={handleARProceed}
+                            onClick={handleProceedClick}
                         >
                             Proceed
                         </Button>
                     </Stack>
                 </Stack>
             </Box>
+
+            <Modal isOpen={isOpen} onClose={onClose} isCentered>
+                <ModalOverlay />
+                <ModalContent maxW="sm" w="100%">
+                    <ModalHeader>Confirm Submission</ModalHeader>
+                    <ModalBody>
+                        <Text>Are you sure you want to proceed with this Acknowledgement Receipt number?</Text>
+                    </ModalBody>
+                    <ModalFooter gap={4}>
+                        <Button 
+                            onClick={onClose} 
+                            bg="white"
+                            color="#FE7654"
+                            border="2px"
+                            borderColor="#FE7654"
+                            _hover={{ bg: "#FE7654", color: "white" }}
+                            _active={{ bg: "#cc4a2d", color: "white" }}
+                            flex="1"
+                            h={{ base: "50px", md: "40px" }}
+                            fontSize={{ base: "lg", md: "md" }}
+                            fontWeight="bold"
+                            borderRadius="xl"
+                        >Cancel
+                        </Button>
+                        <Button 
+                            bg="#FE7654"
+                            color="white"
+                            _hover={{ bg: "#e65c3b" }}
+                            _active={{ bg: "#cc4a2d" }}
+                            flex="1"
+                            h={{ base: "50px", md: "40px" }}
+                            fontSize={{ base: "lg", md: "md" }}
+                            fontWeight="bold"
+                            borderRadius="xl"
+                            onClick={handleConfirm}
+                        >Confirm
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
         </Flex>
     );
 };

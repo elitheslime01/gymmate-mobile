@@ -1,9 +1,10 @@
-import { Box, Button, Flex, Heading, Stack, useToast } from "@chakra-ui/react";
+import { Box, Button, Flex, Heading, Stack, useToast, useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter, Text } from "@chakra-ui/react";
 import useWalkinStore from "../store/walkin";
 import WalkinCalendar from "../components/WalkinCalendar";
 import WalkinTimeSlots from "../components/WalkinTimeSlots";
 
 const WalkinBookSession = () => {
+    const { isOpen, onOpen, onClose } = useDisclosure();
     const {
         selectedDay,
         selectedTime,
@@ -19,20 +20,7 @@ const WalkinBookSession = () => {
         setShowBooking(false);
     };
 
-    const handleBkProceed = async () => {
-        const userId = localStorage.getItem('userId');
-        
-        if (!userId) {
-            toast({
-                title: "Authentication Error",
-                description: "Please log in to proceed with booking.",
-                status: "error",
-                duration: 3000,
-                isClosable: true,
-            });
-            return;
-        }
-    
+    const handleProceedClick = () => {
         if (!selectedDay || !selectedTime) {
             toast({
                 title: "Selection Required",
@@ -43,11 +31,28 @@ const WalkinBookSession = () => {
             });
             return; 
         }
+        onOpen();
+    };
+
+    const handleConfirm = async () => {
+        const userId = localStorage.getItem('userId');
+        
+        if (!userId) {
+            toast({
+                title: "Authentication Error",
+                description: "Please log in to proceed with booking.",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+            onClose();
+            return;
+        }
     
         const selectedDate = new Date(
             currentDate.getFullYear(),
             currentDate.getMonth(),
-            selectedDay + 1
+            selectedDay
         );
         const formattedDate = selectedDate.toISOString().split('T')[0];
     
@@ -72,6 +77,7 @@ const WalkinBookSession = () => {
                     duration: 3000,
                     isClosable: true,
                 });
+                onClose();
                 return;
             }
     
@@ -88,6 +94,7 @@ const WalkinBookSession = () => {
                 isClosable: true,
             });
         }
+        onClose();
     };
 
     
@@ -148,12 +155,52 @@ const WalkinBookSession = () => {
                         fontSize={{ base: "xl", md: "lg" }}
                         fontWeight="bold"
                         borderRadius="xl"
-                        onClick={handleBkProceed}
+                        onClick={handleProceedClick}
                     >
                         Proceed
                     </Button>
                 </Stack>
             </Stack>
+
+            <Modal isOpen={isOpen} onClose={onClose} isCentered>
+                <ModalOverlay />
+                <ModalContent maxW="sm" w="100%">
+                    <ModalHeader>Confirm Booking</ModalHeader>
+                    <ModalBody>
+                        <Text>Are you sure you want to proceed with this date and time slot?</Text>
+                    </ModalBody>
+                    <ModalFooter gap={4}>
+                        <Button 
+                            onClick={onClose} 
+                            bg="white"
+                            color="#FE7654"
+                            border="2px"
+                            borderColor="#FE7654"
+                            _hover={{ bg: "#FE7654", color: "white" }}
+                            _active={{ bg: "#cc4a2d", color: "white" }}
+                            flex="1"
+                            h={{ base: "50px", md: "40px" }}
+                            fontSize={{ base: "lg", md: "md" }}
+                            fontWeight="bold"
+                            borderRadius="xl"
+                        >Cancel
+                        </Button>
+                        <Button 
+                            bg="#FE7654"
+                            color="white"
+                            _hover={{ bg: "#e65c3b" }}
+                            _active={{ bg: "#cc4a2d" }} 
+                            flex="1"
+                            h={{ base: "50px", md: "40px" }}
+                            fontSize={{ base: "lg", md: "md" }}
+                            fontWeight="bold"
+                            borderRadius="xl"
+                            onClick={handleConfirm}
+                        >Confirm
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
         </Box>
     );
 };

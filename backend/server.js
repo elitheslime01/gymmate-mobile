@@ -13,6 +13,8 @@ import path from 'path';
 import arImageRoutes from "./routes/arImage.route.js";
 import bookingRoutes from "./routes/booking.route.js";
 import feedbackRoutes from "./routes/feedback.route.js";
+import notificationRoutes from "./routes/notification.route.js";
+import { startNotificationScheduler } from "./utils/notificationScheduler.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -33,6 +35,7 @@ app.use('/public', express.static(path.join(__dirname, '../public')));
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
 connectDB();
+startNotificationScheduler();
 
 // Register API routes BEFORE app.listen()
 app.use("/api/admins", adminsRoutes)
@@ -43,6 +46,7 @@ app.use("/api/queues", queueRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/arImage", arImageRoutes);
 app.use("/api/feedback", feedbackRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // app.listen(PORT, '0.0.0.0', () => {
 //     connectDB();

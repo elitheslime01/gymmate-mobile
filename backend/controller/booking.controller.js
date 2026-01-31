@@ -1,6 +1,7 @@
 import Booking from "../models/booking.model.js";
 import Student from "../models/student.model.js"; 
 import { updateStudentMetrics } from './student.controller.js';
+import { createNotification } from "./notification.controller.js";
 
 // Function to fetch all bookings for the current month
 export const fetchCurrentMonthBookings = async (req, res) => {
@@ -254,6 +255,17 @@ export const checkMissedBookings = async (req, res) => {
                         student._bookingStatus = 'Not Attended';
                         // Update student metrics immediately
                         await updateStudentMetrics(student._studentId._id, 'noShow');
+            const dateLabel = new Date(booking._date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+            const slotLabel = `${booking._timeSlot.startTime} - ${booking._timeSlot.endTime}`;
+            await createNotification({
+              user: student._studentId._id,
+              booking: booking._id,
+              message: `You missed your booking on ${dateLabel} (${slotLabel}).`,
+              type: "BOOKING_MISSED",
+              link: "/booking",
+              contextId: `${booking._id}-${student._studentId._id}-missed`,
+              scheduledFor: booking._date,
+            });
                         updatedStudents.push(student._studentId._id);
                     }
                 }
@@ -369,6 +381,17 @@ export const updateLapsedBookings = async (req, res) => {
                         student._bookingStatus = 'Not Attended';
                         await updateStudentMetrics(student._studentId._id, 'noShow');
                         updatedBookings.push(booking._id);
+                      const dateLabel = new Date(booking._date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                      const slotLabel = `${booking._timeSlot.startTime} - ${booking._timeSlot.endTime}`;
+                      await createNotification({
+                        user: student._studentId._id,
+                        booking: booking._id,
+                        message: `You missed your booking on ${dateLabel} (${slotLabel}).`,
+                        type: "BOOKING_MISSED",
+                        link: "/booking",
+                        contextId: `${booking._id}-${student._studentId._id}-missed`,
+                        scheduledFor: booking._date,
+                      });
                     }
                 }
                 await booking.save();

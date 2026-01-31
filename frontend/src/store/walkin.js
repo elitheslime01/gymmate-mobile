@@ -37,7 +37,7 @@ const useWalkinStore = create((set, get) => ({
     navigationStack: ['options'],
     currentView: 'options',
     currentDate: new Date(),
-    selectedDay: null, 
+    selectedDay: new Date().getDate(), 
     selectedTime: null, 
     scheduleData: null, 
     scheduleId: null, 
