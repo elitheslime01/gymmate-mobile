@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import crypto from "crypto";
+import bcrypt from "bcrypt";
 import Student from "../models/student.model.js";
 import { sendVerificationEmail } from "../utils/email.js";
 
@@ -45,9 +46,12 @@ export const createStudent = async (req, res) => {
         const expiresAt = new Date(Date.now() + VERIFICATION_EXPIRY_MINUTES * 60 * 1000);
         const now = new Date();
 
-        const newStudent = new Student({
-            ...student,
-            _unsuccessfulAttempts: 0,
+const hashedPassword = await bcrypt.hash(student._password, 10);
+
+    const newStudent = new Student({
+      ...student,
+      _password: hashedPassword,
+      _unsuccessfulAttempts: 0,
             _noShows: 0,
             _attendedSlots: 0,
             _emailVerified: false,
