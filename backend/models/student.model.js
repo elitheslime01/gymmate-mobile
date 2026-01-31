@@ -65,6 +65,29 @@ const studentSchema = new mongoose.Schema({
     _profileImage: {
         type: String,
     }
+    ,
+    _emailVerified: {
+        type: Boolean,
+        default: false,
+        required: true
+    },
+    _verificationCode: {
+        type: String,
+    },
+    _verificationCodeExpires: {
+        type: Date,
+    },
+    _verificationResendCount: {
+        type: Number,
+        default: 0,
+    },
+    _verificationLastSent: {
+        type: Date,
+    },
+    _verificationAttemptCount: {
+        type: Number,
+        default: 0,
+    }
 }, {
     timestamps: true
 });

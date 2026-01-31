@@ -32,6 +32,8 @@ export  const useStudentStore = create((set, get) => ({
     user: initialUser,
     isLoggedIn: initialIsLoggedIn,
     isLoading: false,
+    verificationLoading: false,
+    resendLoading: false,
     error: null,
 
     // Function to set students
@@ -58,12 +60,8 @@ export  const useStudentStore = create((set, get) => ({
             console.log("Response from server:", result); 
 
             if (response.ok) {
-                console.log("Student created successfully:", result.data); 
-                set((state) => ({
-                    students: [...state.students, result.data], 
-                    isLoading: false, 
-                }));
-                return { success: true }; 
+                set({ isLoading: false });
+                return { success: true, data: result.data, message: result.message };
             } else {
                 console.error("Error creating student:", result.message);
                 set({ error: result.message, isLoading: false }); 
@@ -73,6 +71,54 @@ export  const useStudentStore = create((set, get) => ({
             console.error("Error during student creation:", error); 
             set({ error: error.message, isLoading: false }); 
             return { success: false, error: error.message }; 
+        }
+    },
+
+    verifyStudentCode: async (email, code) => {
+        set({ verificationLoading: true, error: null });
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/students/verify-code`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, code }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                set({ verificationLoading: false });
+                return { success: true, message: result.message };
+            }
+
+            set({ verificationLoading: false, error: result.message });
+            return { success: false, error: result.message };
+        } catch (error) {
+            set({ verificationLoading: false, error: error.message });
+            return { success: false, error: error.message };
+        }
+    },
+
+    resendVerificationCode: async (email) => {
+        set({ resendLoading: true, error: null });
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/students/resend-code`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                set({ resendLoading: false });
+                return { success: true, message: result.message };
+            }
+
+            set({ resendLoading: false, error: result.message });
+            return { success: false, error: result.message };
+        } catch (error) {
+            set({ resendLoading: false, error: error.message });
+            return { success: false, error: error.message };
         }
     },
     

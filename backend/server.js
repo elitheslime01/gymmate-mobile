@@ -19,10 +19,8 @@ import { startNotificationScheduler } from "./utils/notificationScheduler.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Load .env from backend directory (handles both running from root and backend dir)
-// dotenv.config({ path: path.join(__dirname, '.env') })
-
-dotenv.config()
+// Load .env from project root so backend picks up shared env vars (GMAIL_USER, etc.)
+dotenv.config({ path: path.join(__dirname, '../.env') })
 
 const app = express()
 const PORT = process.env.PORT || 5001

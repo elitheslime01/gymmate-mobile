@@ -1,11 +1,17 @@
 import express from "express";
-import { createStudent, loginStudent, logoutStudent, updateStudent } from "../controller/student.controller.js";
+import { createStudent, loginStudent, logoutStudent, updateStudent, verifyEmailCode, resendVerificationCode } from "../controller/student.controller.js";
 import upload from "../utils/multer.js";
 
 const router = express.Router();
 
 // Route for creating a new student
 router.post("/", createStudent);
+
+// Route for verifying email code
+router.post("/verify-code", verifyEmailCode);
+
+// Route for resending verification code
+router.post("/resend-code", resendVerificationCode);
 
 // Route for logging in a new student
 router.post("/login", loginStudent);
