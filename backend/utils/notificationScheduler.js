@@ -50,9 +50,24 @@ const runBookingNotificationSweep = async () => {
       };
 
       if (shouldRemind(status) && start > now && start.getTime() - now.getTime() <= DAY_MS) {
+        const bookingDate = new Date(start);
+        const today = new Date(now);
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        let message = "Reminder: you have a booking.";
+        if (bookingDate.toDateString() === today.toDateString()) {
+          message = "Reminder: you have a booking today.";
+        } else if (bookingDate.toDateString() === tomorrow.toDateString()) {
+          message = "Reminder: you have a booking tomorrow.";
+        } else {
+          message = `Reminder: you have a booking on ${bookingDate.toLocaleDateString()}.`;
+        }
+
         await createNotification({
           ...base,
-          message: "Reminder: you have a booking tomorrow.",
+          message,
           type: "BOOKING_REMINDER_1D",
           contextId: buildContextId(booking._id, studentId, "1d"),
         });

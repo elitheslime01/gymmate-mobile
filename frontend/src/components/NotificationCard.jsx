@@ -5,6 +5,8 @@ import { MdCheckCircle, MdSchedule, MdInfo } from "react-icons/md";
 const typeMeta = {
   QUEUE_SUCCESS: { label: "Slot secured", color: "green" },
   QUEUE_FAIL: { label: "No slot", color: "red" },
+  QUEUE_WAIT: { label: "In queue", color: "blue" },
+  BOOKING_CONFIRMED: { label: "Booking confirmed", color: "green" },
   BOOKING_REMINDER_1D: { label: "1 day reminder", color: "blue" },
   BOOKING_REMINDER_1H: { label: "1 hour reminder", color: "blue" },
   BOOKING_START: { label: "Starting", color: "purple" },

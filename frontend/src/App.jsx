@@ -8,6 +8,7 @@ import AccountPage from "./pages/AccountPage";
 import MyAccountPage from "./pages/MyAccountPage";
 import FeedbackPage from "./pages/FeedbackPage";
 import AppLayout from "./components/layout/AppLayout";
+import PushNotificationManager from "./components/PushNotificationManager";
 
 function App() {
   const location = useLocation();
@@ -29,6 +30,7 @@ function App() {
 
   return (
     <AppLayout showChrome={showChrome} currentPath={primaryPath} pageTitle={pageTitle}>
+      <PushNotificationManager />
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />

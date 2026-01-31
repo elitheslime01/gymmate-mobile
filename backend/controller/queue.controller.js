@@ -108,6 +108,17 @@ export const addStudentToQueue = async (req, res) => {
 
     await queue.save();
 
+    const dateLabel = new Date(_date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const slotLabel = `${_timeSlot.startTime} - ${_timeSlot.endTime}`;
+    await createNotification({
+      user: _studentId,
+      message: `You are in the queue for ${dateLabel} (${slotLabel}). Waiting for allocation.`,
+      type: "QUEUE_WAIT",
+      link: "/booking",
+      contextId: `${queue._id}-${_studentId}-waiting`,
+      scheduledFor: _date,
+    });
+
     return res.status(200).json({
       success: true,
       message: "Student added to queue successfully.",
@@ -250,8 +261,8 @@ export const allocateStudentsToBooking = async (req, res) => {
             await createNotification({
               user: studentId,
               booking: bookingId,
-              message: `You secured a slot on ${dateLabel} (${slotLabel}).`,
-              type: "QUEUE_SUCCESS",
+              message: `Booking confirmed for ${dateLabel} (${slotLabel}).`,
+              type: "BOOKING_CONFIRMED",
               link: "/booking",
               contextId: `${queue._id}-${studentId}-success`,
               scheduledFor: queue._date,
@@ -272,7 +283,7 @@ export const allocateStudentsToBooking = async (req, res) => {
 
         await createNotification({
           user: studentId,
-          message: `No slot secured for ${dateLabel} (${slotLabel}).`,
+          message: `No slot secured for ${dateLabel} (${slotLabel}). All slots were full when allocating.`,
           type: "QUEUE_FAIL",
           link: "/booking",
           contextId: `${queue._id}-${studentId}-fail`,

@@ -19,6 +19,8 @@ const notificationSchema = new mongoose.Schema({
         enum: [
             "QUEUE_SUCCESS",
             "QUEUE_FAIL",
+            "QUEUE_WAIT",
+            "BOOKING_CONFIRMED",
             "BOOKING_REMINDER_1D",
             "BOOKING_REMINDER_1H",
             "BOOKING_START",
