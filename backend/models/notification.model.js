@@ -27,7 +27,8 @@ const notificationSchema = new mongoose.Schema({
             "BOOKING_END",
             "BOOKING_MISSED",
             "BOOKING_COMPLETED",
-            "BOOKING_CANCELLED"
+            "BOOKING_CANCELLED",
+            "PRIORITY_UPDATE"
         ],
         required: true,
     },

@@ -35,8 +35,12 @@ const ScheduleCalendar = () => {
         const days = [];
         const firstDay = getFirstDayOfMonth(currentDate.getMonth(), currentDate.getFullYear());
         const totalDays = daysInMonth(currentDate.getMonth(), currentDate.getFullYear());
-        const today = new Date(); // Get today's date
-        today.setHours(0, 0, 0, 0); // Normalize today's date to midnight for accurate comparison
+
+        // Capture today's date parts once to avoid timezone drift when comparing days
+        const today = new Date();
+        const todayYear = today.getFullYear();
+        const todayMonth = today.getMonth();
+        const todayDay = today.getDate();
     
         // Add empty boxes for days before the first day of the month
         for (let i = 0; i < firstDay; i++) {
@@ -45,9 +49,13 @@ const ScheduleCalendar = () => {
     
         // Add buttons for each day of the month
         for (let i = 1; i <= totalDays; i++) {
-            const dayDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), i);
-            dayDate.setHours(0, 0, 0, 0); // Normalize dayDate to midnight for accurate comparison
-            const isPastDay = dayDate < today; // Check if the day is in the past
+            const dayYear = currentDate.getFullYear();
+            const dayMonth = currentDate.getMonth();
+            // Treat anything before today as past; avoids time-of-day/timezone edge cases
+            const isPastDay =
+                dayYear < todayYear ||
+                (dayYear === todayYear && dayMonth < todayMonth) ||
+                (dayYear === todayYear && dayMonth === todayMonth && i < todayDay);
     
             days.push(
                 <Button

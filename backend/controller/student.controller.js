@@ -3,6 +3,7 @@ import crypto from "crypto";
 import bcrypt from "bcrypt";
 import Student from "../models/student.model.js";
 import { sendVerificationEmail } from "../utils/email.js";
+import { createNotification } from "./notification.controller.js";
 
 const VERIFICATION_EXPIRY_MINUTES = 10;
 const RESEND_COOLDOWN_MS = 60 * 1000;
@@ -245,6 +246,8 @@ export const updateStudentMetrics = async (studentId, status) => {
         const student = await Student.findById(studentId);
         if (!student) return;
 
+        const previousPriority = student._priorityScore ?? 0;
+
         switch (status) {
             case "attended":
                 student._attendedSlots += 1;
@@ -259,6 +262,9 @@ export const updateStudentMetrics = async (studentId, status) => {
             case "unsuccessful":
                 student._unsuccessfulAttempts += 1;
                 break;
+            case "cancelled":
+                student._noShows += 1; // Penalize cancellations slightly via no-show counter
+                break;
             default:
                 break;
         }
@@ -266,6 +272,26 @@ export const updateStudentMetrics = async (studentId, status) => {
         student._priorityScore = student._unsuccessfulAttempts + student._attendedSlots - Math.floor(student._noShows / 2);
 
         await student.save();
+
+        if (student._priorityScore !== previousPriority) {
+            const reasonLabels = {
+                attended: "Session completed",
+                noShow: "No-show recorded",
+                unsuccessful: "Unsuccessful allocation",
+                cancelled: "Booking cancelled",
+            };
+
+            const message = `Priority score updated to ${student._priorityScore} (${reasonLabels[status] || "Status changed"}). Previous: ${previousPriority}.`;
+
+            await createNotification({
+                user: studentId,
+                message,
+                type: "PRIORITY_UPDATE",
+                link: "/booking",
+                contextId: `priority-${studentId}-${status}-${Date.now()}`,
+            });
+        }
+
         return student;
     } catch (error) {
         console.error("Error updating student metrics:", error);

@@ -338,6 +338,7 @@ export const allocateStudentsToBooking = async (req, res) => {
     }
     
       // Handle remaining unallocated waiting students
+      const totalSlots = schedule.timeSlots[timeSlotIndex]._availableSlots + allocatedStudents.length; // Original total slots
       while (maxHeap.size() > 0) {
         const student = maxHeap.extractMax();
         const studentId = student._studentId?._id || student._studentId;
@@ -348,7 +349,7 @@ export const allocateStudentsToBooking = async (req, res) => {
         await markAllocationStatus({
           userId: studentId,
           status: "FAILED",
-          reason: "No slots available",
+          reason: `All ${totalSlots} slots were allocated to ${allocatedStudents.length} higher priority students (your priority: ${student._priorityScore})`,
         });
 
         const dateLabel = new Date(queue._date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -356,7 +357,7 @@ export const allocateStudentsToBooking = async (req, res) => {
 
         await createNotification({
           user: studentId,
-          message: `No slot secured for ${dateLabel} (${slotLabel}). All slots were full when allocating.`,
+          message: `No slot secured for ${dateLabel} (${slotLabel}). All ${totalSlots} slots were allocated to ${allocatedStudents.length} higher priority students. Your priority score: ${student._priorityScore}.`,
           type: "QUEUE_FAIL",
           link: "/booking",
           contextId: `${queue._id}-${studentId}-fail`,

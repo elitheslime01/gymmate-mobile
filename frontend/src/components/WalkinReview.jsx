@@ -1,9 +1,27 @@
-import { useToast, Box, Button, Flex, Heading, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Stack, Text, VStack, useDisclosure } from "@chakra-ui/react";
+import { useToast, Box, Button, Flex, Heading, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Stack, Text, VStack, useDisclosure, Divider, HStack, Badge, Image } from "@chakra-ui/react";
+import { AddIcon, MinusIcon, RepeatIcon } from "@chakra-ui/icons";
+import PropTypes from "prop-types";
+import { useEffect, useMemo, useState } from "react";
 import useWalkinStore from "../store/walkin";
 import { useStudentStore } from "../store/student";
 
+const DetailRow = ({ label, value, accent }) => (
+    <HStack justify="space-between" w="full" py={2}>
+        <Text color="gray.600" fontSize="sm" textTransform="uppercase" letterSpacing="0.08em">{label}</Text>
+        <Text fontWeight="semibold" color={accent ? "#FE7654" : "#071434"}>{value || "N/A"}</Text>
+    </HStack>
+);
+
+DetailRow.propTypes = {
+    label: PropTypes.string.isRequired,
+    value: PropTypes.oneOfType([PropTypes.string, PropTypes.node]),
+    accent: PropTypes.bool,
+};
+
 const WalkinReview = () => {
-    const { isOpen, onOpen, onClose } = useDisclosure();
+    const { isOpen: isConfirmOpen, onOpen: onConfirmOpen, onClose: onConfirmClose } = useDisclosure();
+    const { isOpen: isImageOpen, onOpen: onImageOpen, onClose: onImageClose } = useDisclosure();
+    const [zoomLevel, setZoomLevel] = useState(1);
 
     const {
         setShowARInput,
@@ -26,13 +44,59 @@ const WalkinReview = () => {
     const { user, isLoggedIn } = useStudentStore();
     const toast = useToast();
 
+    const arImageUrl = useMemo(() => {
+        if (!arImage) return null;
+
+        // If backend returned a URL-ish string, use it directly
+        if (typeof arImage === "string") return arImage;
+
+        // If backend returned an object, try common url fields
+        if (typeof arImage === "object" && !(arImage instanceof File) && !(arImage instanceof Blob)) {
+            const possible = arImage.url || arImage._arImage || arImage.secure_url || arImage.path;
+            if (possible) return possible;
+        }
+
+        // Fallback for File/Blob during same-session upload
+        try {
+            return URL.createObjectURL(arImage);
+        } catch (e) {
+            console.error("Failed to create preview URL for AR image", e);
+            return null;
+        }
+    }, [arImage]);
+
+    const arImageFormat = useMemo(() => {
+        if (!arImage) return "image";
+        if (arImage instanceof File || arImage instanceof Blob) return arImage.type || "image";
+        if (typeof arImage === "object" && arImage?.mimeType) return arImage.mimeType;
+        return "image";
+    }, [arImage]);
+
+    useEffect(() => {
+        if (isImageOpen) {
+            setZoomLevel(1);
+        }
+    }, [isImageOpen]);
+
+    const handleZoomIn = () => setZoomLevel((z) => Math.min(z + 0.25, 3));
+    const handleZoomOut = () => setZoomLevel((z) => Math.max(z - 0.25, 0.5));
+    const handleZoomReset = () => setZoomLevel(1);
+
+    useEffect(() => {
+        return () => {
+            if (arImageUrl && typeof arImage !== "string") {
+                URL.revokeObjectURL(arImageUrl);
+            }
+        };
+    }, [arImageUrl, arImage]);
+
     const handleRevCancel = () => {
         setShowARInput(true);
         setShowReview(false);
     }
 
     const handleRevProceed = () => {
-        onOpen();
+        onConfirmOpen();
     }
 
     const handleConfirm = async () => {
@@ -135,7 +199,7 @@ const WalkinReview = () => {
                 setShowReview(false);
             }
             resetBookingInputs({ resetBooked: false });
-            onClose();
+            onConfirmClose();
         } else {
             toast({
                 title: "Error",
@@ -147,6 +211,20 @@ const WalkinReview = () => {
         }
     };
 
+    const handleViewImage = () => {
+        if (!arImageUrl) {
+            toast({
+                title: "No image available",
+                description: "Please upload an AR image first.",
+                status: "info",
+                duration: 3000,
+                isClosable: true,
+            });
+            return;
+        }
+        onImageOpen();
+    };
+
     return (
         <Flex w="full" justify="center">
             <Box
@@ -156,25 +234,48 @@ const WalkinReview = () => {
                 borderRadius="2xl"
                 boxShadow="xl"
                 p={{ base: 5, md: 8 }}
+                border="1px solid"
+                borderColor="gray.100"
             >
                 <Stack spacing={{ base: 6, md: 8 }}>
-                    <Heading as="h1" size="lg" textAlign="center">
-                        Please review your booking details
-                    </Heading>
-                    <Stack spacing={{ base: 4, md: 6 }}>
-                        <Stack direction={{ base: "column", md: "row" }} spacing={{ base: 4, md: 6 }}>
-                            <VStack align="start" spacing={2} flex="1">
-                                <Text fontWeight="semibold">Full Name: {isLoggedIn ? `${user._fName} ${user._lName}` : 'N/A'}</Text>
-                                <Text fontWeight="semibold">Student ID: {isLoggedIn ? user._umakID : 'N/A'}</Text>
-                                <Text fontWeight="semibold">UMak Email Address: {isLoggedIn ? user._umakEmail : 'N/A'}</Text>
-                            </VStack>
-                            <VStack align="start" spacing={2} flex="1">
-                                <Text fontWeight="semibold">Selected Date: {formattedDate}</Text>
-                                <Text fontWeight="semibold">Selected Time Slot: {selectedTimeSlot ? `${selectedTimeSlot._startTime} - ${selectedTimeSlot._endTime}` : 'N/A'}</Text>
-                                <Text fontWeight="semibold">AR Number: {arCode}</Text>
-                            </VStack>
-                        </Stack>
-                    </Stack>
+                    <VStack spacing={1}>
+                        <Heading as="h1" size="lg" textAlign="center" color="#071434">
+                            Booking Review
+                        </Heading>
+                        <Text color="gray.600" fontSize="sm">Please confirm all details before joining the queue.</Text>
+                    </VStack>
+
+                    <Box border="1px dashed" borderColor="gray.200" borderRadius="xl" p={{ base: 4, md: 5 }} bg="gray.50">
+                        <VStack align="stretch" spacing={3}>
+                            <HStack justify="space-between">
+                                <Badge colorScheme="orange" borderRadius="md" px={3} py={1}>Walk-in Queue</Badge>
+                                <Text fontSize="sm" color="gray.500">AR Code</Text>
+                            </HStack>
+                            <Text fontSize="2xl" fontWeight="bold" color="#071434" letterSpacing="0.08em">
+                                {arCode || "—"}
+                            </Text>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                colorScheme="orange"
+                                alignSelf="flex-start"
+                                onClick={handleViewImage}
+                            >
+                                View AR Image
+                            </Button>
+                            <Divider />
+                            <Text fontWeight="semibold" color="#071434">Reservation Details</Text>
+                            <DetailRow label="Date" value={formattedDate} />
+                            <DetailRow label="Time" value={selectedTimeSlot ? `${selectedTimeSlot._startTime} - ${selectedTimeSlot._endTime}` : "N/A"} />
+                            <DetailRow label="Schedule ID" value={scheduleData?._id} />
+                            <Divider />
+                            <Text fontWeight="semibold" color="#071434">Student Information</Text>
+                            <DetailRow label="Name" value={isLoggedIn ? `${user._fName} ${user._lName}` : "N/A"} />
+                            <DetailRow label="Student ID" value={isLoggedIn ? user._umakID : "N/A"} />
+                            <DetailRow label="UMak Email" value={isLoggedIn ? user._umakEmail : "N/A"} />
+                        </VStack>
+                    </Box>
+
                     <Stack direction="row" spacing={4}>
                         <Button
                             bg="white"
@@ -204,24 +305,24 @@ const WalkinReview = () => {
                             borderRadius="xl"
                             onClick={handleRevProceed}
                         >
-                            Confirm Slot
+                            Confirm
                         </Button>
                     </Stack>
                 </Stack>
 
-                <Modal isOpen={isOpen} onClose={onClose} isCentered>
+                <Modal isOpen={isConfirmOpen} onClose={onConfirmClose} isCentered>
                     <ModalOverlay />
                     <ModalContent maxW="sm" w="100%">
-                        <ModalHeader>Are you sure your information is correct?</ModalHeader>
+                        <ModalHeader>Confirm your details</ModalHeader>
                         <ModalBody>
                             <Text as="ul" listStyleType="disc" ml={4} color="gray.600">
-                                <li>If any of the information is incorrect, please go back and update it accordingly.</li>
-                                <li>Once confirmed, AR Number cannot be used again.</li>
+                                <li>Ensure your AR number, schedule, and student details are accurate.</li>
+                                <li>Once confirmed, this AR number cannot be reused.</li>
                             </Text>
                         </ModalBody>
                         <ModalFooter gap={4}>
                             <Button 
-                                onClick={onClose} 
+                                onClick={onConfirmClose} 
                                 bg="white"
                                 color="#FE7654"
                                 border="2px"
@@ -247,6 +348,92 @@ const WalkinReview = () => {
                                 borderRadius="xl"
                                 onClick={handleConfirm}
                             >Confirm
+                            </Button>
+                        </ModalFooter>
+                    </ModalContent>
+                </Modal>
+
+                <Modal isOpen={isImageOpen} onClose={onImageClose} isCentered size="6xl">
+                    <ModalOverlay />
+                    <ModalContent bg="#0f1220" color="white" borderRadius="lg" overflow="hidden">
+                        <ModalHeader borderBottom="1px solid" borderColor="gray.700">
+                            {user?._fName || user?._lName ? `${user?._fName ?? ""} ${user?._lName ?? ""}`.trim() + " - Acknowledgement Receipt" : "Acknowledgement Receipt"}
+                        </ModalHeader>
+                        <ModalBody p={4} display="flex" flexDirection="column" gap={4}>
+                            <HStack spacing={3} justify="center">
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    leftIcon={<MinusIcon />}
+                                    onClick={handleZoomOut}
+                                    isDisabled={zoomLevel <= 0.5}
+                                    colorScheme="orange"
+                                    borderColor="orange.400"
+                                    color="orange.300"
+                                    _hover={{ borderColor: "orange.300", color: "orange.200", bg: "rgba(254,118,84,0.08)" }}
+                                    _disabled={{ borderColor: "gray.600", color: "gray.500", opacity: 0.6, cursor: "not-allowed" }}
+                                >
+                                    Zoom Out
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    leftIcon={<RepeatIcon />}
+                                    onClick={handleZoomReset}
+                                    colorScheme="orange"
+                                    borderColor="orange.400"
+                                    color="orange.300"
+                                    _hover={{ borderColor: "orange.300", color: "orange.200", bg: "rgba(254,118,84,0.08)" }}
+                                >
+                                    Reset
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    leftIcon={<AddIcon />}
+                                    onClick={handleZoomIn}
+                                    isDisabled={zoomLevel >= 3}
+                                    colorScheme="orange"
+                                    borderColor="orange.400"
+                                    color="orange.300"
+                                    _hover={{ borderColor: "orange.300", color: "orange.200", bg: "rgba(254,118,84,0.08)" }}
+                                    _disabled={{ borderColor: "gray.600", color: "gray.500", opacity: 0.6, cursor: "not-allowed" }}
+                                >
+                                    Zoom In
+                                </Button>
+                            </HStack>
+                            <Box
+                                bg="black"
+                                borderRadius="md"
+                                p={2}
+                                minH="50vh"
+                                maxH="75vh"
+                                overflow="auto"
+                                display="flex"
+                                alignItems="center"
+                                justifyContent="center"
+                            >
+                                {arImageUrl ? (
+                                    <Image
+                                        src={arImageUrl}
+                                        alt="Acknowledgement Receipt"
+                                        maxH="75vh"
+                                        objectFit="contain"
+                                        transform={`scale(${zoomLevel})`}
+                                        transformOrigin="center"
+                                        transition="transform 0.2s ease"
+                                    />
+                                ) : (
+                                    <Text color="gray.400">No image to display.</Text>
+                                )}
+                            </Box>
+                            <Text fontSize="sm" color="gray.300" textAlign="center">
+                                Format: {arImageFormat}
+                            </Text>
+                        </ModalBody>
+                        <ModalFooter borderTop="1px solid" borderColor="gray.700">
+                            <Button onClick={onImageClose} w="full" colorScheme="orange">
+                                Close
                             </Button>
                         </ModalFooter>
                     </ModalContent>

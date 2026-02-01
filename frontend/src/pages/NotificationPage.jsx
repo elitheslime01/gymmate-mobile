@@ -74,7 +74,6 @@ const NotificationPage = () => {
                 key={notification._id}
                 notification={notification}
                 onOpenLink={() => handleOpen(notification)}
-                onMarkRead={() => markAsRead(notification._id)}
               />
             ))}
           </VStack>

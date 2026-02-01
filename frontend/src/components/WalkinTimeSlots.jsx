@@ -72,7 +72,9 @@ const ScheduleTimeSlots = () => {
         fetchSchedule();
     }, [selectedDay, fetchScheduleByDate]);
 
-    const handleTimeClick = (slot) => {
+    const handleTimeClick = (slot, isBookable) => {
+        if (!isBookable) return;
+
         setSelectedSlot(slot); // Set the selected slot data
         setSelectedTime({
             startTime: slot.startTime || slot._startTime,
@@ -113,13 +115,16 @@ const ScheduleTimeSlots = () => {
                             const startTime = slot._startTime || slot.startTime;
                             const endTime = slot._endTime || slot.endTime;
                             const activeStart = selectedSlot?._startTime || selectedSlot?.startTime;
-                            const isActive = activeStart === startTime;
+                            const availableSlots = slot._availableSlots ?? slot.availableSlots ?? 0;
                             const statusInfo = getStatusStyle(slot._status || slot.status);
+                            const normalizedStatus = (slot._status || slot.status || "").toLowerCase();
+                            const isBookable = normalizedStatus === "available" && availableSlots > 0;
+                            const isActive = isBookable && activeStart === startTime;
 
                             return (
                                 <Button
                                     key={`${startTime}-${endTime}`}
-                                    onClick={() => handleTimeClick(slot)}
+                                    onClick={() => handleTimeClick(slot, isBookable)}
                                     bg="white"
                                     borderWidth="2px"
                                     borderColor={isActive ? "#FE7654" : "gray.200"}
@@ -131,15 +136,24 @@ const ScheduleTimeSlots = () => {
                                     borderRadius="xl"
                                     justifyContent="flex-start"
                                     textAlign="left"
-                                    _hover={{ 
+                                    opacity={isBookable ? 1 : 0.6}
+                                    cursor={isBookable ? "pointer" : "not-allowed"}
+                                    _hover={isBookable ? { 
                                         borderColor: isActive ? "#e65c3b" : "#FE7654", 
                                         boxShadow: "lg",
                                         transform: "translateY(-2px)"
+                                    } : {
+                                        borderColor: "gray.200",
+                                        boxShadow: "md",
+                                        transform: "none"
                                     }}
                                     _focusVisible={{ boxShadow: "0 0 0 3px rgba(254, 118, 84, 0.4)" }}
-                                    _active={{ 
+                                    _active={isBookable ? { 
                                         transform: "scale(0.98)",
                                         borderColor: "#cc4a2d"
+                                    } : {
+                                        transform: "none",
+                                        borderColor: "gray.200"
                                     }}
                                     transition="all 0.2s"
                                 >

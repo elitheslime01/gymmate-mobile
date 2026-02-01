@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import { Box, Flex, HStack, Text, Badge, Icon, Button, VStack } from "@chakra-ui/react";
+import { Box, Flex, HStack, Text, Badge, Icon, VStack } from "@chakra-ui/react";
 import { MdCheckCircle, MdSchedule, MdInfo } from "react-icons/md";
 
 const typeMeta = {
@@ -14,6 +14,7 @@ const typeMeta = {
   BOOKING_MISSED: { label: "Missed", color: "red" },
   BOOKING_COMPLETED: { label: "Completed", color: "green" },
   BOOKING_CANCELLED: { label: "Cancelled", color: "gray" },
+  PRIORITY_UPDATE: { label: "Priority updated", color: "teal" },
 };
 
 const iconForType = (type) => {
@@ -32,7 +33,7 @@ const formatTime = (value) => {
   });
 };
 
-const NotificationCard = ({ notification, onOpenLink, onMarkRead }) => {
+const NotificationCard = ({ notification, onOpenLink }) => {
   const meta = typeMeta[notification.type] || { label: "Update", color: "gray" };
   const IconComp = iconForType(notification.type);
 
@@ -43,6 +44,18 @@ const NotificationCard = ({ notification, onOpenLink, onMarkRead }) => {
       p={4}
       bg={notification.read ? "gray.50" : "white"}
       boxShadow="sm"
+      onClick={onOpenLink}
+      cursor="pointer"
+      _hover={{ boxShadow: "md", bg: notification.read ? "gray.100" : "gray.50" }}
+      transition="all 0.15s ease"
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpenLink?.();
+        }
+      }}
     >
       <Flex justify="space-between" align="flex-start" gap={4}>
         <HStack align="flex-start" spacing={3}>
@@ -60,18 +73,6 @@ const NotificationCard = ({ notification, onOpenLink, onMarkRead }) => {
             </Text>
           </VStack>
         </HStack>
-        <VStack spacing={2} align="flex-end">
-          {notification.link && (
-            <Button size="md" variant="outline" colorScheme="orange" w="100px" onClick={onOpenLink}>
-              Open
-            </Button>
-          )}
-          {!notification.read && (
-            <Button size="md" variant="outline" colorScheme="orange" w="100px" onClick={onMarkRead}>
-              Mark read
-            </Button>
-          )}
-        </VStack>
       </Flex>
     </Box>
   );
@@ -87,7 +88,6 @@ NotificationCard.propTypes = {
     link: PropTypes.string,
   }).isRequired,
   onOpenLink: PropTypes.func,
-  onMarkRead: PropTypes.func,
 };
 
 export default NotificationCard;

@@ -235,6 +235,9 @@ export const timeOut = async (req, res) => {
     student._bookingStatus = "Completed";
     await booking.save();
 
+    // Reward completion by updating priority metrics
+    await updateStudentMetrics(studentId, "attended");
+
     res.status(200).json({ message: "Time out recorded successfully" });
   } catch (error) {
     console.error("Error recording time out:", error);
