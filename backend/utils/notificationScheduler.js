@@ -1,7 +1,8 @@
 import Booking from "../models/booking.model.js";
 import { createNotification } from "../controller/notification.controller.js";
 
-const CHECK_INTERVAL_MS = 5 * 60 * 1000;
+// Run frequently to avoid delayed push delivery (e.g., session start/end firing late)
+const CHECK_INTERVAL_MS = 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const HOUR_MS = 60 * 60 * 1000;
 

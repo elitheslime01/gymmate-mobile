@@ -35,17 +35,33 @@ const sendPushForNotification = async (notification) => {
     }
 };
 
+// Find an existing notification to avoid duplicates for the same booking/type or context
+export const findExistingNotification = async ({ user, booking, type, contextId }) => {
+    const filters = [];
+
+    if (user && type && contextId) {
+        filters.push({ user, type, contextId });
+    }
+
+    if (user && booking && type) {
+        filters.push({ user, booking, type });
+    }
+
+    if (filters.length === 0) {
+        return null;
+    }
+
+    const query = filters.length === 1 ? filters[0] : { $or: filters };
+    return Notification.findOne(query);
+};
+
 // This is an internal function to create a notification
 // It will be called from other controllers (e.g., booking, queue)
 export const createNotification = async (notificationData) => {
     try {
-        const { user, type, contextId } = notificationData;
-
-        if (user && type && contextId) {
-            const existing = await Notification.findOne({ user, type, contextId });
-            if (existing) {
-                return existing;
-            }
+        const existing = await findExistingNotification(notificationData);
+        if (existing) {
+            return existing;
         }
 
         const notification = new Notification(notificationData);
@@ -95,6 +111,11 @@ export const savePushSubscription = async (req, res) => {
         const student = await Student.findById(userId);
         if (!student) {
             return res.status(404).json({ success: false, message: "Student not found." });
+        }
+
+        // Ensure _pushSubscriptions is an array (for existing students)
+        if (!Array.isArray(student._pushSubscriptions)) {
+            student._pushSubscriptions = [];
         }
 
         const existingIndex = student._pushSubscriptions.findIndex(
@@ -160,6 +181,65 @@ export const triggerPushNotification = async (req, res) => {
         res.status(200).json({ success: true, message: "Push notification dispatched." });
     } catch (error) {
         console.error("Error triggering push notification:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
+// Endpoint so external systems (e.g., admin allocation app) can trigger booking lifecycle notifications instantly
+export const triggerBookingNotification = async (req, res) => {
+    try {
+        const { userId, bookingId, type, date, startTime, endTime, message, link } = req.body;
+
+        const allowedTypes = ["BOOKING_CONFIRMED", "BOOKING_START", "BOOKING_END", "BOOKING_MISSED", "BOOKING_CANCELLED"];
+
+        if (!userId || !bookingId || !type || !date || !startTime || !endTime) {
+            return res.status(400).json({ success: false, message: "userId, bookingId, type, date, startTime, and endTime are required." });
+        }
+
+        if (!allowedTypes.includes(type)) {
+            return res.status(400).json({ success: false, message: "Invalid notification type for booking." });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(bookingId)) {
+            return res.status(400).json({ success: false, message: "Invalid userId or bookingId." });
+        }
+
+        const student = await Student.findById(userId).select("_pushSubscriptions");
+        if (!student) {
+            return res.status(404).json({ success: false, message: "Student not found." });
+        }
+
+        const dateLabel = new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+        const slotLabel = `${startTime} - ${endTime}`;
+
+        const defaultMessages = {
+            BOOKING_CONFIRMED: `Booking confirmed for ${dateLabel} (${slotLabel}).`,
+            BOOKING_START: `Your session is starting now for ${dateLabel} (${slotLabel}). Please time in.`,
+            BOOKING_END: `Your session ended for ${dateLabel} (${slotLabel}). Please time out.`,
+            BOOKING_MISSED: `You missed your booking on ${dateLabel} (${slotLabel}).`,
+            BOOKING_CANCELLED: `Your booking on ${dateLabel} (${slotLabel}) was cancelled.`,
+        };
+
+        const finalMessage = message || defaultMessages[type] || "Booking update.";
+        const contextId = `${bookingId}-${userId}-${type.toLowerCase()}`;
+
+        const notification = await createNotification({
+            user: userId,
+            booking: bookingId,
+            message: finalMessage,
+            type,
+            link: link || "/booking",
+            contextId,
+            scheduledFor: new Date(date),
+        });
+
+        if (notification) {
+            return res.status(200).json({ success: true, message: "Booking notification sent." });
+        }
+
+        return res.status(500).json({ success: false, message: "Failed to create booking notification." });
+    } catch (error) {
+        console.error("Error triggering booking notification:", error);
         res.status(500).json({ success: false, message: "Server error" });
     }
 };

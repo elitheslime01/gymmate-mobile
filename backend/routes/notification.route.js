@@ -5,6 +5,7 @@ import {
     markAllAsRead,
     savePushSubscription,
     triggerPushNotification,
+    triggerBookingNotification,
 } from "../controller/notification.controller.js";
 
 const router = express.Router();
@@ -12,6 +13,7 @@ const router = express.Router();
 // Routes for push subscription and manual trigger
 router.post("/subscribe", savePushSubscription);
 router.post("/send", triggerPushNotification);
+router.post("/booking/notify", triggerBookingNotification);
 
 // Route for getting all notifications for a user
 router.get("/:userId", getNotifications);

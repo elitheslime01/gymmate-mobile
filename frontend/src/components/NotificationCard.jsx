@@ -10,7 +10,7 @@ const typeMeta = {
   BOOKING_REMINDER_1D: { label: "1 day reminder", color: "blue" },
   BOOKING_REMINDER_1H: { label: "1 hour reminder", color: "blue" },
   BOOKING_START: { label: "Starting", color: "purple" },
-  BOOKING_END: { label: "Ending", color: "orange" },
+  BOOKING_END: { label: "Ended", color: "orange" },
   BOOKING_MISSED: { label: "Missed", color: "red" },
   BOOKING_COMPLETED: { label: "Completed", color: "green" },
   BOOKING_CANCELLED: { label: "Cancelled", color: "gray" },

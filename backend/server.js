@@ -14,6 +14,7 @@ import arImageRoutes from "./routes/arImage.route.js";
 import bookingRoutes from "./routes/booking.route.js";
 import feedbackRoutes from "./routes/feedback.route.js";
 import notificationRoutes from "./routes/notification.route.js";
+import allocationRoutes from "./routes/allocation.route.js";
 import { startNotificationScheduler } from "./utils/notificationScheduler.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -45,6 +46,7 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/arImage", arImageRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/allocations", allocationRoutes);
 
 // app.listen(PORT, '0.0.0.0', () => {
 //     connectDB();

@@ -116,7 +116,22 @@ export const getCurrentBooking = async (req, res) => {
   try {
     const { studentId } = req.params;
     const now = new Date();
-    const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+    const startOfDay = new Date(now);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const parseTimeOnDate = (dateValue, timeString) => {
+      const match = timeString?.match(/(\d+):(\d+) (AM|PM)/);
+      if (!match) return null;
+      const [, hours, minutes, meridiem] = match;
+      const date = new Date(dateValue);
+      let hour = parseInt(hours, 10);
+      const minute = parseInt(minutes, 10);
+      const isPm = meridiem === "PM";
+      if (isPm && hour !== 12) hour += 12;
+      if (!isPm && hour === 12) hour = 0;
+      date.setHours(hour, minute, 0, 0);
+      return date;
+    };
 
     // Convert studentId to ObjectId if necessary
     const mongoose = await import("mongoose");
@@ -147,13 +162,19 @@ export const getCurrentBooking = async (req, res) => {
     .populate('students._arID')
     .sort({ '_date': 1, '_timeSlot.startTime': 1 });
 
-    // Get the earliest non-completed booking
-    const currentBooking = bookings.find(booking => {
-      const student = booking.students.find(s => 
-        s._studentId._id.toString() === studentId.toString() &&
-        s._bookingStatus !== 'Completed'
+    // Get the earliest booking that is not completed/ended yet
+    const currentBooking = bookings.find((booking) => {
+      const student = booking.students.find(
+        (s) =>
+          s._studentId._id.toString() === studentId.toString() &&
+          s._bookingStatus !== "Completed" &&
+          s._bookingStatus !== "Not Attended"
       );
-      return student;
+      if (!student) return false;
+
+      const bookingEnd = parseTimeOnDate(booking._date, booking._timeSlot?.endTime);
+      if (!bookingEnd) return true; // if time parsing fails, keep it as current to avoid hiding valid bookings
+      return now <= bookingEnd;
     });
 
     if (!currentBooking) {

@@ -55,6 +55,8 @@ notificationSchema.index({ user: 1, type: 1, contextId: 1 }, {
     partialFilterExpression: { contextId: { $exists: true, $type: "string" } },
 });
 
+notificationSchema.index({ user: 1, booking: 1, type: 1 });
+
 const Notification = mongoose.model("Notification", notificationSchema);
 
 export default Notification;

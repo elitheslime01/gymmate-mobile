@@ -7,6 +7,7 @@ import Booking from "../models/booking.model.js";
 import Schedule from "../models/schedule.model.js";
 import { updateStudentMetrics } from "./student.controller.js";
 import { createNotification } from "./notification.controller.js";
+import AllocationStatus from "../models/allocationStatus.model.js";
 
 // Calculate priority score with the new logic
 const calculatePriorityScore = (student) => {
@@ -20,6 +21,60 @@ const calculatePriorityScore = (student) => {
   const attendanceBonus = student._attendedSlots || 0;
 
   return attendanceBonus + unsuccessfulPoints - noShowPenalty;
+};
+
+// Update or upsert allocation status for a user/booking combination
+const markAllocationStatus = async ({ userId, bookingId, status, reason }) => {
+  try {
+    const isAllocated = status === "ALLOCATED";
+    const isFailed = status === "FAILED";
+
+    const setUpdate = {
+      status,
+      ...(bookingId ? { booking: bookingId } : {}),
+      ...(isAllocated ? { allocatedAt: new Date() } : {}),
+    };
+
+    if (isFailed && reason) {
+      setUpdate.reason = reason;
+    }
+
+    const update = { $set: setUpdate };
+
+    if (!isFailed) {
+      update.$unset = { reason: "" };
+    }
+
+    const baseOptions = {
+      new: true,
+      upsert: false,
+      setDefaultsOnInsert: true,
+    };
+
+    const candidateQueries = [
+      { user: userId, status: "WAITING" },
+    ];
+
+    if (bookingId) {
+      candidateQueries.push({ user: userId, booking: bookingId });
+    }
+
+    for (const query of candidateQueries) {
+      const updated = await AllocationStatus.findOneAndUpdate(query, update, baseOptions);
+      if (updated) {
+        return updated;
+      }
+    }
+
+    return await AllocationStatus.findOneAndUpdate(
+      { user: userId, ...(bookingId ? { booking: bookingId } : {}) },
+      update,
+      { ...baseOptions, upsert: true }
+    );
+  } catch (error) {
+    console.error("Error updating allocation status:", error.message);
+    return null;
+  }
 };
 
 export const addStudentToQueue = async (req, res) => {
@@ -107,6 +162,12 @@ export const addStudentToQueue = async (req, res) => {
   });
 
     await queue.save();
+
+    try {
+      await AllocationStatus.create({ user: _studentId, status: "WAITING" });
+    } catch (error) {
+      console.error("Error creating allocation status:", error.message);
+    }
 
     const dateLabel = new Date(_date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
     const slotLabel = `${_timeSlot.startTime} - ${_timeSlot.endTime}`;
@@ -255,6 +316,12 @@ export const allocateStudentsToBooking = async (req, res) => {
             schedule.timeSlots[timeSlotIndex]._availableSlots -= 1;
             allocatedStudents.push(student);
 
+            await markAllocationStatus({
+              userId: studentId,
+              bookingId,
+              status: "ALLOCATED",
+            });
+
             const dateLabel = new Date(queue._date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
             const slotLabel = `${queue._timeSlot.startTime} - ${queue._timeSlot.endTime}`;
 
@@ -277,6 +344,12 @@ export const allocateStudentsToBooking = async (req, res) => {
         await updateStudentMetrics(student._studentId, 'unsuccessful');
         student._queueStatus = "Not allocated - No slots available";
         unallocatedStudents.push(student);
+
+        await markAllocationStatus({
+          userId: studentId,
+          status: "FAILED",
+          reason: "No slots available",
+        });
 
         const dateLabel = new Date(queue._date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
         const slotLabel = `${queue._timeSlot.startTime} - ${queue._timeSlot.endTime}`;
