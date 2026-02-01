@@ -1,21 +1,42 @@
 import { Box, Flex } from "@chakra-ui/react";
 import PropTypes from "prop-types";
+import { useState } from "react";
 import HeaderBar from "./HeaderBar";
 import Navigation from "./Navigation";
 
 const AppLayout = ({ children, showChrome = true, pageTitle = "", currentPath }) => {
+  const [isNavVisible, setIsNavVisible] = useState(true);
+
+  const toggleNav = () => {
+    setIsNavVisible(!isNavVisible);
+  };
+
   return (
-    <Flex minH="100vh" bg="#f5f6fa">
+    <Box minH="100vh" bg="#f5f6fa" position="relative">
       {showChrome && (
-        <Navigation
-          variant="desktop"
-          currentPath={currentPath}
-          display={{ base: "none", lg: "flex" }}
-          w={{ lg: 64, xl: 72 }}
-        />
+        <Box
+          as="nav"
+          position="absolute"
+          top={0}
+          left={0}
+          bottom={0}
+          w={isNavVisible ? { lg: 64, xl: 72 } : { lg: 0, xl: 0 }}
+          opacity={isNavVisible ? 1 : 0}
+          overflow="hidden"
+          transition="all 0.3s ease-in-out"
+          display={{ base: "none", lg: "block" }}
+          zIndex={10}
+        >
+          <Navigation
+            variant="desktop"
+            currentPath={currentPath}
+            w={{ lg: 64, xl: 72 }}
+            h="100vh"
+          />
+        </Box>
       )}
-      <Flex direction="column" flex="1" minH="100vh">
-        {showChrome && <HeaderBar title={pageTitle} />}
+      <Flex direction="column" minH="100vh" ml={showChrome && isNavVisible ? { lg: 64, xl: 72 } : 0} transition="margin-left 0.3s ease-in-out">
+        {showChrome && <HeaderBar title={pageTitle} onToggleNav={toggleNav} isNavVisible={isNavVisible} />}
         <Box
           as="main"
           flex="1"
@@ -41,7 +62,7 @@ const AppLayout = ({ children, showChrome = true, pageTitle = "", currentPath })
           />
         )}
       </Flex>
-    </Flex>
+    </Box>
   );
 };
 
