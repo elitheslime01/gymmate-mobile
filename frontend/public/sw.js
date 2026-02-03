@@ -3,7 +3,7 @@ self.addEventListener("push", (event) => {
   const payload = (() => {
     try {
       return event.data ? event.data.json() : {};
-    } catch (_error) {
+    } catch {
       return {};
     }
   })();
